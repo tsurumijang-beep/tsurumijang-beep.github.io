@@ -19,8 +19,6 @@
       color: var(--text);
       line-height: 1.6;
     }
-
-    /* ===== Navbar ===== */
     .navbar {
       background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
       padding: 0 16px;
@@ -58,12 +56,8 @@
     }
     .nav-btn:hover { background: rgba(255,255,255,0.2); }
     .nav-btn.active { background: rgba(255,255,255,0.25); border-color: rgba(255,255,255,0.5); }
-
-    /* ===== Dashboard ===== */
     .dashboard { max-width: 960px; margin: 0 auto; padding: 16px; }
     .dashboard.mobile-mode { max-width: 100%; padding: 10px; }
-
-    /* ===== Header ===== */
     .header {
       background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
       color: #fff; padding: 32px 24px; border-radius: 16px;
@@ -82,8 +76,6 @@
     .change.negative { color: #f87171; }
     .change.neutral { color: #94a3b8; }
     .date { font-size: 11px; opacity: 0.7; margin-top: 4px; }
-
-    /* ===== Hub Links ===== */
     .hub-links {
       display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px;
     }
@@ -101,8 +93,6 @@
     .hub-icon { font-size: 28px; margin-bottom: 6px; }
     .mobile-mode .hub-icon { font-size: 22px; margin-bottom: 0; }
     .hub-title { font-size: 13px; font-weight: 700; color: #475569; }
-
-    /* ===== Grid & Cards ===== */
     .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 16px; }
     .mobile-mode .grid { grid-template-columns: 1fr; gap: 10px; }
     .card {
@@ -113,8 +103,6 @@
     .card:hover { transform: translateY(-2px); }
     .card-title { font-size: 14px; font-weight: 700; color: var(--muted); margin-bottom: 14px; display: flex; align-items: center; gap: 6px; }
     .mobile-mode .card-title { font-size: 13px; margin-bottom: 10px; }
-
-    /* ===== Account Rows ===== */
     .account-row {
       display: flex; justify-content: space-between; align-items: center;
       padding: 9px 0; border-bottom: 1px solid var(--border); font-size: 14px;
@@ -129,14 +117,10 @@
     .private { color: #94a3b8; font-size: 13px; }
     .progress-bar { height: 6px; background: #e2e8f0; border-radius: 3px; margin-top: 10px; overflow: hidden; }
     .progress-fill { height: 100%; border-radius: 3px; transition: width 0.8s ease; }
-
-    /* ===== Chart ===== */
     .chart-container { position: relative; height: 220px; display: flex; justify-content: center; align-items: center; }
     .mobile-mode .chart-container { height: 180px; }
     .legend { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; justify-content: center; }
     .legend-item { display: flex; align-items: center; gap: 4px; font-size: 11px; color: var(--muted); }
-
-    /* ===== Crypto ===== */
     .crypto-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
     .mobile-mode .crypto-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
     .crypto-item { background: #f8fafc; border-radius: 12px; padding: 14px; text-align: center; }
@@ -148,8 +132,6 @@
     .mobile-mode .crypto-value { font-size: 14px; }
     .crypto-date { font-size: 10px; color: #94a3b8; margin-top: 2px; }
     .crypto-total { margin-top: 12px; text-align: center; font-size: 13px; font-weight: 700; color: var(--text); }
-
-    /* ===== Side Income ===== */
     .side-income { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
     .mobile-mode .side-income { grid-template-columns: repeat(3, 1fr); gap: 6px; }
     .income-box { background: #f8fafc; border-radius: 12px; padding: 14px; text-align: center; border-top: 3px solid #e2e8f0; }
@@ -162,21 +144,13 @@
     .side-total-label { font-size: 12px; color: var(--muted); }
     .side-total-value { font-size: 22px; font-weight: 800; color: var(--text); }
     .mobile-mode .side-total-value { font-size: 18px; }
-
-    /* ===== Points ===== */
     .points-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 14px; }
     .points-row:last-child { border-bottom: none; }
     .points-total { margin-top: 12px; text-align: center; font-size: 13px; color: var(--muted); }
-
-    /* ===== Footer ===== */
     .full-width { grid-column: 1 / -1; text-align: center; padding: 16px; }
     .footer-note { font-size: 12px; color: #94a3b8; }
     .mobile-mode .footer-note { font-size: 11px; padding: 12px; }
-
-    /* ===== Loading ===== */
     .loading { text-align: center; color: #94a3b8; font-size: 13px; padding: 20px; }
-
-    /* ===== Mobile Responsive (auto) ===== */
     @media (max-width: 640px) {
       .navbar { padding: 0 10px; height: 52px; }
       .nav-brand { font-size: 13px; }
@@ -185,7 +159,7 @@
       .hub-links { grid-template-columns: 1fr; gap: 8px; }
       .hub-card { padding: 14px; display: flex; align-items: center; gap: 12px; text-align: left; }
       .hub-icon { font-size: 22px; margin-bottom: 0; }
-      .total-asset { font-size: 28px; }
+      .total-asset { font-size: 32px; }
       .grid { grid-template-columns: 1fr; gap: 10px; }
       .card { padding: 14px; }
       .chart-container { height: 180px; }
@@ -389,7 +363,6 @@ function setLang(lang) {
   localStorage.setItem('dash-lang', lang);
   applyLang();
   updateLangButtons();
-  // 데이터 재렌더링
   renderAll(FALLBACK_DATA);
 }
 
