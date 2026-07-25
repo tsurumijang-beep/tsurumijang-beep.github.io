@@ -3,18 +3,27 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>今週の投資資産サマリ</title>
+  <title>投資資産サマリ</title>
   <style>
+    :root {
+      --bg: #f5f7fa;
+      --card: #fff;
+      --text: #1a1a2e;
+      --muted: #64748b;
+      --border: #f1f5f9;
+    }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: 'Noto Sans JP', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      background: #f5f7fa;
-      color: #1a1a2e;
+      background: var(--bg);
+      color: var(--text);
       line-height: 1.6;
     }
+
+    /* ===== Navbar ===== */
     .navbar {
       background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-      padding: 0 24px;
+      padding: 0 16px;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -23,195 +32,412 @@
       top: 0;
       z-index: 100;
       box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+      gap: 8px;
     }
-    .nav-brand { color: #fff; font-size: 16px; font-weight: 700; }
-    .nav-links { display: flex; list-style: none; gap: 8px; }
+    .nav-brand { color: #fff; font-size: 15px; font-weight: 700; white-space: nowrap; }
+    .nav-links { display: flex; list-style: none; gap: 4px; align-items: center; }
     .nav-links a {
-      color: rgba(255,255,255,0.7); text-decoration: none; font-size: 13px;
-      font-weight: 600; padding: 8px 14px; border-radius: 8px; transition: all 0.2s;
+      color: rgba(255,255,255,0.7); text-decoration: none; font-size: 12px;
+      font-weight: 600; padding: 6px 10px; border-radius: 8px; transition: all 0.2s;
+      white-space: nowrap;
     }
     .nav-links a:hover, .nav-links a.active { color: #fff; background: rgba(255,255,255,0.1); }
+    .nav-controls {
+      display: flex; gap: 6px; align-items: center;
+    }
+    .nav-btn {
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.2);
+      color: #fff;
+      font-size: 11px;
+      padding: 5px 10px;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-weight: 600;
+    }
+    .nav-btn:hover { background: rgba(255,255,255,0.2); }
+    .nav-btn.active { background: rgba(255,255,255,0.25); border-color: rgba(255,255,255,0.5); }
+
+    /* ===== Dashboard ===== */
     .dashboard { max-width: 960px; margin: 0 auto; padding: 16px; }
+    .dashboard.mobile-mode { max-width: 100%; padding: 10px; }
+
+    /* ===== Header ===== */
     .header {
       background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
       color: #fff; padding: 32px 24px; border-radius: 16px;
       text-align: center; margin-bottom: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);
     }
+    .mobile-mode .header { padding: 20px 16px; border-radius: 12px; }
     .header h1 { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+    .mobile-mode .header h1 { font-size: 15px; }
     .total-asset { font-size: 42px; font-weight: 800; letter-spacing: -1px; }
-    .total-asset span { font-size: 18px; font-weight: 600; margin-left: 4px; }
+    .mobile-mode .total-asset { font-size: 28px; }
+    .total-asset .currency { font-size: 18px; font-weight: 600; margin-left: 4px; }
+    .mobile-mode .total-asset .currency { font-size: 14px; }
     .change { font-size: 14px; margin-top: 4px; }
+    .mobile-mode .change { font-size: 12px; }
     .change.positive { color: #4ade80; }
     .change.negative { color: #f87171; }
     .change.neutral { color: #94a3b8; }
     .date { font-size: 11px; opacity: 0.7; margin-top: 4px; }
+
+    /* ===== Hub Links ===== */
     .hub-links {
       display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px;
     }
+    .mobile-mode .hub-links { grid-template-columns: 1fr; gap: 8px; }
     .hub-card {
-      background: #fff; border-radius: 16px; padding: 20px; text-align: center;
+      background: var(--card); border-radius: 16px; padding: 20px; text-align: center;
       text-decoration: none; color: inherit; box-shadow: 0 2px 12px rgba(0,0,0,0.06);
       transition: all 0.2s; border-top: 4px solid transparent;
     }
+    .mobile-mode .hub-card { padding: 14px; border-radius: 12px; display: flex; align-items: center; gap: 12px; text-align: left; }
     .hub-card:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,0.1); }
     .hub-card.blog { border-top-color: #10b981; }
     .hub-card.youtube { border-top-color: #ef4444; }
     .hub-card.x { border-top-color: #0ea5e9; }
     .hub-icon { font-size: 28px; margin-bottom: 6px; }
+    .mobile-mode .hub-icon { font-size: 22px; margin-bottom: 0; }
     .hub-title { font-size: 13px; font-weight: 700; color: #475569; }
+
+    /* ===== Grid & Cards ===== */
     .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 16px; }
+    .mobile-mode .grid { grid-template-columns: 1fr; gap: 10px; }
     .card {
-      background: #fff; border-radius: 16px; padding: 20px;
+      background: var(--card); border-radius: 16px; padding: 20px;
       box-shadow: 0 2px 12px rgba(0,0,0,0.06); transition: transform 0.2s;
     }
+    .mobile-mode .card { padding: 14px; border-radius: 12px; }
     .card:hover { transform: translateY(-2px); }
-    .card-title { font-size: 14px; font-weight: 700; color: #64748b; margin-bottom: 14px; display: flex; align-items: center; gap: 6px; }
+    .card-title { font-size: 14px; font-weight: 700; color: var(--muted); margin-bottom: 14px; display: flex; align-items: center; gap: 6px; }
+    .mobile-mode .card-title { font-size: 13px; margin-bottom: 10px; }
+
+    /* ===== Account Rows ===== */
     .account-row {
       display: flex; justify-content: space-between; align-items: center;
-      padding: 9px 0; border-bottom: 1px solid #f1f5f9; font-size: 14px;
+      padding: 9px 0; border-bottom: 1px solid var(--border); font-size: 14px;
     }
+    .mobile-mode .account-row { padding: 7px 0; font-size: 13px; }
     .account-row:last-child { border-bottom: none; }
     .account-name { display: flex; align-items: center; gap: 8px; font-weight: 600; }
     .account-value { font-weight: 700; font-family: 'SF Mono', monospace; font-size: 14px; }
+    .mobile-mode .account-value { font-size: 13px; }
     .account-pct { font-size: 11px; color: #94a3b8; margin-left: 4px; }
     .badge { display: inline-block; width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
     .private { color: #94a3b8; font-size: 13px; }
     .progress-bar { height: 6px; background: #e2e8f0; border-radius: 3px; margin-top: 10px; overflow: hidden; }
     .progress-fill { height: 100%; border-radius: 3px; transition: width 0.8s ease; }
+
+    /* ===== Chart ===== */
     .chart-container { position: relative; height: 220px; display: flex; justify-content: center; align-items: center; }
+    .mobile-mode .chart-container { height: 180px; }
     .legend { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; justify-content: center; }
-    .legend-item { display: flex; align-items: center; gap: 4px; font-size: 11px; color: #64748b; }
+    .legend-item { display: flex; align-items: center; gap: 4px; font-size: 11px; color: var(--muted); }
+
+    /* ===== Crypto ===== */
     .crypto-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .mobile-mode .crypto-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
     .crypto-item { background: #f8fafc; border-radius: 12px; padding: 14px; text-align: center; }
+    .mobile-mode .crypto-item { padding: 10px; border-radius: 10px; }
     .crypto-icon { font-size: 24px; margin-bottom: 6px; }
-    .crypto-name { font-size: 12px; color: #64748b; font-weight: 600; }
+    .crypto-name { font-size: 12px; color: var(--muted); font-weight: 600; }
+    .mobile-mode .crypto-name { font-size: 11px; }
     .crypto-value { font-size: 16px; font-weight: 700; margin-top: 4px; }
+    .mobile-mode .crypto-value { font-size: 14px; }
     .crypto-date { font-size: 10px; color: #94a3b8; margin-top: 2px; }
-    .crypto-total { margin-top: 12px; text-align: center; font-size: 13px; font-weight: 700; color: #1a1a2e; }
+    .crypto-total { margin-top: 12px; text-align: center; font-size: 13px; font-weight: 700; color: var(--text); }
+
+    /* ===== Side Income ===== */
     .side-income { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .mobile-mode .side-income { grid-template-columns: repeat(3, 1fr); gap: 6px; }
     .income-box { background: #f8fafc; border-radius: 12px; padding: 14px; text-align: center; border-top: 3px solid #e2e8f0; }
-    .income-label { font-size: 11px; color: #64748b; font-weight: 600; }
+    .mobile-mode .income-box { padding: 10px 6px; border-radius: 10px; }
+    .income-label { font-size: 11px; color: var(--muted); font-weight: 600; }
+    .mobile-mode .income-label { font-size: 10px; }
     .income-value { font-size: 18px; font-weight: 700; margin-top: 6px; }
-    .side-total { margin-top: 14px; padding-top: 12px; border-top: 1px solid #f1f5f9; text-align: center; }
-    .side-total-label { font-size: 12px; color: #64748b; }
-    .side-total-value { font-size: 22px; font-weight: 800; color: #1a1a2e; }
-    .points-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f1f5f9; font-size: 14px; }
+    .mobile-mode .income-value { font-size: 15px; }
+    .side-total { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border); text-align: center; }
+    .side-total-label { font-size: 12px; color: var(--muted); }
+    .side-total-value { font-size: 22px; font-weight: 800; color: var(--text); }
+    .mobile-mode .side-total-value { font-size: 18px; }
+
+    /* ===== Points ===== */
+    .points-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 14px; }
     .points-row:last-child { border-bottom: none; }
-    .points-total { margin-top: 12px; text-align: center; font-size: 13px; color: #64748b; }
+    .points-total { margin-top: 12px; text-align: center; font-size: 13px; color: var(--muted); }
+
+    /* ===== Footer ===== */
     .full-width { grid-column: 1 / -1; text-align: center; padding: 16px; }
     .footer-note { font-size: 12px; color: #94a3b8; }
+    .mobile-mode .footer-note { font-size: 11px; padding: 12px; }
+
+    /* ===== Loading ===== */
     .loading { text-align: center; color: #94a3b8; font-size: 13px; padding: 20px; }
+
+    /* ===== Mobile Responsive (auto) ===== */
     @media (max-width: 640px) {
-      .hub-links { grid-template-columns: 1fr; }
-      .nav-links a { padding: 6px 10px; font-size: 12px; }
-      .total-asset { font-size: 32px; }
-      .grid { grid-template-columns: 1fr; }
-      .crypto-grid { grid-template-columns: 1fr; }
-      .side-income { grid-template-columns: 1fr; }
+      .navbar { padding: 0 10px; height: 52px; }
+      .nav-brand { font-size: 13px; }
+      .nav-links a { padding: 5px 8px; font-size: 11px; }
+      .nav-btn { padding: 4px 8px; font-size: 10px; }
+      .hub-links { grid-template-columns: 1fr; gap: 8px; }
+      .hub-card { padding: 14px; display: flex; align-items: center; gap: 12px; text-align: left; }
+      .hub-icon { font-size: 22px; margin-bottom: 0; }
+      .total-asset { font-size: 28px; }
+      .grid { grid-template-columns: 1fr; gap: 10px; }
+      .card { padding: 14px; }
+      .chart-container { height: 180px; }
     }
   </style>
+<base target="_blank">
 </head>
 <body>
   <nav class="navbar">
-    <div class="nav-brand">📊 投資資産サマリ</div>
+    <div class="nav-brand">📊 <span data-i18n="siteTitle">投資資産サマリ</span></div>
     <ul class="nav-links">
-      <li><a href="#dashboard" class="active">Dashboard</a></li>
-      <li><a href="YOUR_BLOG_URL" target="_blank">📖 Blog</a></li>
-      <li><a href="YOUR_YOUTUBE_URL" target="_blank">📺 YouTube</a></li>
-      <li><a href="YOUR_X_URL" target="_blank">🐦 X</a></li>
+      <li><a href="#dashboard" class="active" data-i18n="navDashboard">Dashboard</a></li>
+      <li><a href="YOUR_BLOG_URL" target="_blank">📖 <span data-i18n="navBlog">Blog</span></a></li>
+      <li><a href="YOUR_YOUTUBE_URL" target="_blank">📺 <span data-i18n="navYoutube">YouTube</span></a></li>
+      <li><a href="YOUR_X_URL" target="_blank">🐦 <span data-i18n="navX">X</span></a></li>
     </ul>
+    <div class="nav-controls">
+      <button class="nav-btn" id="btn-lang-jp" onclick="setLang('ja')">🇯🇵 JP</button>
+      <button class="nav-btn" id="btn-lang-ko" onclick="setLang('ko')">🇰🇷 KR</button>
+      <button class="nav-btn" id="btn-lang-en" onclick="setLang('en')">🇺🇸 EN</button>
+      <button class="nav-btn" id="btn-view-pc" onclick="setView('pc')">🖥️ PC</button>
+      <button class="nav-btn" id="btn-view-mobile" onclick="setView('mobile')">📱 SP</button>
+    </div>
   </nav>
 
-  <main class="dashboard">
+  <main class="dashboard" id="dashboard-root">
     <div class="header" id="dashboard">
-      <h1>今週の投資資産サマリ</h1>
-      <div class="total-asset" id="total-asset">--<span>円</span></div>
-      <div class="change neutral" id="total-change">データを読み込み中...</div>
+      <h1 data-i18n="dashboardTitle">今週の投資資産サマリ</h1>
+      <div class="total-asset" id="total-asset">--<span class="currency" data-i18n="currency">円</span></div>
+      <div class="change neutral" id="total-change" data-i18n="loading">データを読み込み中...</div>
       <div class="date" id="update-date">--</div>
     </div>
 
     <div class="hub-links">
       <a href="YOUR_BLOG_URL" class="hub-card blog" target="_blank">
         <div class="hub-icon">📖</div>
-        <div class="hub-title">Blog</div>
+        <div class="hub-title" data-i18n="hubBlog">Blog</div>
       </a>
       <a href="YOUR_YOUTUBE_URL" class="hub-card youtube" target="_blank">
         <div class="hub-icon">📺</div>
-        <div class="hub-title">YouTube</div>
+        <div class="hub-title" data-i18n="hubYoutube">YouTube</div>
       </a>
       <a href="YOUR_X_URL" class="hub-card x" target="_blank">
         <div class="hub-icon">🐦</div>
-        <div class="hub-title">X / Threads</div>
+        <div class="hub-title" data-i18n="hubX">X / Threads</div>
       </a>
     </div>
 
     <div class="grid">
-      <!-- 口座別資産 -->
       <div class="card">
-        <div class="card-title">🏦 口座別資産</div>
-        <div id="accounts-list"><div class="loading">読み込み中...</div></div>
+        <div class="card-title">🏦 <span data-i18n="accountsTitle">口座別資産</span></div>
+        <div id="accounts-list"><div class="loading" data-i18n="loading">読み込み中...</div></div>
         <div class="progress-bar"><div class="progress-fill" id="accounts-progress" style="width:0%"></div></div>
       </div>
 
-      <!-- ポートフォリオ -->
       <div class="card">
-        <div class="card-title">📈 投資ポートフォリオ内訳</div>
+        <div class="card-title">📈 <span data-i18n="portfolioTitle">投資ポートフォリオ内訳</span></div>
         <div class="chart-container">
           <svg width="200" height="200" viewBox="0 0 200 200" id="portfolio-chart">
             <circle cx="100" cy="100" r="80" fill="none" stroke="#e2e8f0" stroke-width="24"/>
-            <text x="100" y="100" text-anchor="middle" font-size="12" fill="#94a3b8">読込中</text>
+            <text x="100" y="100" text-anchor="middle" font-size="12" fill="#94a3b8" data-i18n="loading">読込中</text>
           </svg>
         </div>
         <div class="legend" id="portfolio-legend"></div>
       </div>
 
-      <!-- 暗号資産 -->
       <div class="card">
-        <div class="card-title">₿ 暗号資産（現物）</div>
-        <div class="crypto-grid" id="crypto-grid"><div class="loading">読み込み中...</div></div>
+        <div class="card-title">₿ <span data-i18n="cryptoTitle">暗号資産（現物）</span></div>
+        <div class="crypto-grid" id="crypto-grid"><div class="loading" data-i18n="loading">読み込み中...</div></div>
         <div class="crypto-total" id="crypto-total"></div>
       </div>
 
-      <!-- 副業 -->
       <div class="card">
-        <div class="card-title">💼 副業状況（今週）</div>
-        <div class="side-income" id="side-income"><div class="loading">読み込み中...</div></div>
+        <div class="card-title">💼 <span data-i18n="sideIncomeTitle">副業状況（今週）</span></div>
+        <div class="side-income" id="side-income"><div class="loading" data-i18n="loading">読み込み中...</div></div>
         <div class="side-total" id="side-total"></div>
       </div>
 
-      <!-- ポイント -->
       <div class="card">
-        <div class="card-title">🎯 ポイント投資</div>
-        <div id="points-list"><div class="loading">読み込み中...</div></div>
+        <div class="card-title">🎯 <span data-i18n="pointsTitle">ポイント投資</span></div>
+        <div id="points-list"><div class="loading" data-i18n="loading">読み込み中...</div></div>
         <div class="points-total" id="points-total"></div>
       </div>
 
-      <!-- 銀行 -->
       <div class="card">
-        <div class="card-title">🏛 銀行預金</div>
-        <div class="account-row"><div class="account-name">楽天銀行</div><div class="private">※非公開※</div></div>
-        <div class="account-row"><div class="account-name">Paypay銀行</div><div class="private">※非公開※</div></div>
-        <div class="account-row"><div class="account-name">りそな銀行</div><div class="private">※非公開※</div></div>
+        <div class="card-title">🏛 <span data-i18n="bankTitle">銀行預金</span></div>
+        <div class="account-row"><div class="account-name">楽天銀行</div><div class="private" data-i18n="private">※非公開※</div></div>
+        <div class="account-row"><div class="account-name">Paypay銀行</div><div class="private" data-i18n="private">※非公開※</div></div>
+        <div class="account-row"><div class="account-name">りそな銀行</div><div class="private" data-i18n="private">※非公開※</div></div>
       </div>
     </div>
 
     <div class="card full-width footer-note">
-      <div>💡 投資資産＋ポイント資産で確認可能な規模：<strong id="visible-total">計算中...</strong>（銀行預金除く）</div>
-      <div style="margin-top:8px;font-size:11px;">データソース：Google Sheets → 自動更新 | 最終更新：<span id="last-updated">--</span></div>
+      <div>💡 <span data-i18n="visibleTotalPrefix">投資資産＋ポイント資産で確認可能な規模：</span><strong id="visible-total">計算中...</strong><span data-i18n="visibleTotalSuffix">（銀行預金除く）</span></div>
+      <div style="margin-top:8px;font-size:11px;"><span data-i18n="dataSource">データソース：Google Sheets → 自動更新</span> | <span data-i18n="lastUpdated">最終更新：</span><span id="last-updated">--</span></div>
     </div>
   </main>
 
 <script>
 // ============================================
+// i18n Translations
+// ============================================
+const i18n = {
+  ja: {
+    siteTitle: '投資資産サマリ',
+    navDashboard: 'Dashboard',
+    navBlog: 'Blog',
+    navYoutube: 'YouTube',
+    navX: 'X',
+    dashboardTitle: '今週の投資資産サマリ',
+    currency: '円',
+    loading: '読み込み中...',
+    hubBlog: 'Blog',
+    hubYoutube: 'YouTube',
+    hubX: 'X / Threads',
+    accountsTitle: '口座別資産',
+    portfolioTitle: '投資ポートフォリオ内訳',
+    cryptoTitle: '暗号資産（現物）',
+    sideIncomeTitle: '副業状況（今週）',
+    pointsTitle: 'ポイント投資',
+    bankTitle: '銀行預金',
+    private: '※非公開※',
+    evaluationLabel: '評価額',
+    dailyPrefix: '毎日',
+    changePrefix: '前週比：',
+    cryptoTotal: '暗号資産合計：',
+    sideTotalLabel: '今週の副業収入合計',
+    pointsTotal: 'ポイント資産合計：',
+    visibleTotalPrefix: '投資資産＋ポイント資産で確認可能な規模：',
+    visibleTotalSuffix: '（銀行預金除く）',
+    dataSource: 'データソース：Google Sheets → 自動更新',
+    lastUpdated: '最終更新：'
+  },
+  ko: {
+    siteTitle: '투자자산 요약',
+    navDashboard: '대시보드',
+    navBlog: '블로그',
+    navYoutube: '유튜브',
+    navX: 'X',
+    dashboardTitle: '이번 주 투자 자산 요약',
+    currency: '원',
+    loading: '불러오는 중...',
+    hubBlog: '블로그',
+    hubYoutube: '유튜브',
+    hubX: 'X / 스레드',
+    accountsTitle: '계좌별 자산',
+    portfolioTitle: '투자 포트폴리오 내역',
+    cryptoTitle: '암호화폐(현물)',
+    sideIncomeTitle: '부업 현황(이번 주)',
+    pointsTitle: '포인트 투자',
+    bankTitle: '은행 예금',
+    private: '※비공개※',
+    evaluationLabel: '평가액',
+    dailyPrefix: '매일',
+    changePrefix: '전주비：',
+    cryptoTotal: '암호화폐 합계：',
+    sideTotalLabel: '이번 주 부업 수입 합계',
+    pointsTotal: '포인트 자산 합계：',
+    visibleTotalPrefix: '투자자산+포인트자산 확인 가능 규모: ',
+    visibleTotalSuffix: '(은행 예금 제외)',
+    dataSource: '데이터 출처: Google Sheets → 자동 업데이트',
+    lastUpdated: '최종 업데이트: '
+  },
+  en: {
+    siteTitle: 'Investment Summary',
+    navDashboard: 'Dashboard',
+    navBlog: 'Blog',
+    navYoutube: 'YouTube',
+    navX: 'X',
+    dashboardTitle: 'Weekly Investment Summary',
+    currency: ' JPY',
+    loading: 'Loading...',
+    hubBlog: 'Blog',
+    hubYoutube: 'YouTube',
+    hubX: 'X / Threads',
+    accountsTitle: 'Accounts',
+    portfolioTitle: 'Portfolio Breakdown',
+    cryptoTitle: 'Crypto Assets',
+    sideIncomeTitle: 'Side Income (This Week)',
+    pointsTitle: 'Point Investments',
+    bankTitle: 'Bank Deposits',
+    private: '※Private※',
+    evaluationLabel: 'Valuation',
+    dailyPrefix: 'Daily ',
+    changePrefix: 'WoW: ',
+    cryptoTotal: 'Crypto Total: ',
+    sideTotalLabel: 'Weekly Side Income Total',
+    pointsTotal: 'Point Total: ',
+    visibleTotalPrefix: 'Visible Assets (excl. Bank): ',
+    visibleTotalSuffix: '',
+    dataSource: 'Data: Google Sheets → Auto Update',
+    lastUpdated: 'Last Updated: '
+  }
+};
+
+let currentLang = localStorage.getItem('dash-lang') || 'ja';
+let currentView = localStorage.getItem('dash-view') || 'pc';
+
+function setLang(lang) {
+  currentLang = lang;
+  localStorage.setItem('dash-lang', lang);
+  applyLang();
+  updateLangButtons();
+  // 데이터 재렌더링
+  renderAll(FALLBACK_DATA);
+}
+
+function setView(view) {
+  currentView = view;
+  localStorage.setItem('dash-view', view);
+  applyView();
+  updateViewButtons();
+}
+
+function applyLang() {
+  const t = i18n[currentLang];
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    if (t[key]) el.textContent = t[key];
+  });
+}
+
+function applyView() {
+  const root = document.getElementById('dashboard-root');
+  if (currentView === 'mobile') {
+    root.classList.add('mobile-mode');
+  } else {
+    root.classList.remove('mobile-mode');
+  }
+}
+
+function updateLangButtons() {
+  ['jp','ko','en'].forEach(l => {
+    const btn = document.getElementById('btn-lang-' + l);
+    const active = (l === 'jp' && currentLang === 'ja') ||
+                   (l === 'ko' && currentLang === 'ko') ||
+                   (l === 'en' && currentLang === 'en');
+    btn.classList.toggle('active', active);
+  });
+}
+
+function updateViewButtons() {
+  document.getElementById('btn-view-pc').classList.toggle('active', currentView === 'pc');
+  document.getElementById('btn-view-mobile').classList.toggle('active', currentView === 'mobile');
+}
+
+// ============================================
 // Dashboard Data & Renderer
 // ============================================
-
-// ⚠️ Google Apps Script URL (後で設定)
 const APPS_SCRIPT_URL = 'YOUR_APPS_SCRIPT_URL_HERE';
+function fmt(n){ return Number(n).toLocaleString(currentLang === 'en' ? 'en-US' : (currentLang === 'ko' ? 'ko-KR' : 'ja-JP')); }
 
-function fmt(n){ return Number(n).toLocaleString('ja-JP'); }
-
-// ===== フォールバック：直接データ（Google Sheets未連携時用） =====
 const FALLBACK_DATA = {
   summary: [{ total_asset: 6365859, change: 0, date: '2026-07-26' }],
   accounts: [
@@ -247,6 +473,10 @@ const FALLBACK_DATA = {
   ]
 };
 
+function t(key) {
+  return i18n[currentLang][key] || key;
+}
+
 function renderAll(data) {
   renderSummary(data.summary);
   renderAccounts(data.accounts);
@@ -255,19 +485,19 @@ function renderAll(data) {
   renderSideIncome(data.sideIncome);
   renderPoints(data.points);
   calcVisibleTotal(data);
-  document.getElementById('last-updated').textContent = new Date().toLocaleString('ja-JP');
+  document.getElementById('last-updated').textContent = new Date().toLocaleString(currentLang === 'en' ? 'en-US' : (currentLang === 'ko' ? 'ko-KR' : 'ja-JP'));
 }
 
 function renderSummary(summary) {
   if (!summary || !summary.length) return;
   const s = summary[0];
-  document.getElementById('total-asset').innerHTML = fmt(s.total_asset || 0) + '<span>円</span>';
+  document.getElementById('total-asset').innerHTML = fmt(s.total_asset || 0) + '<span class="currency">' + t('currency') + '</span>';
   const changeEl = document.getElementById('total-change');
   const change = Number(s.change || 0);
-  if (change > 0) { changeEl.textContent = '前週比：+' + fmt(change) + '円'; changeEl.className = 'change positive'; }
-  else if (change < 0) { changeEl.textContent = '前週比：' + fmt(change) + '円'; changeEl.className = 'change negative'; }
-  else { changeEl.textContent = '前週比：±0円（横ばい）'; changeEl.className = 'change neutral'; }
-  document.getElementById('update-date').textContent = s.date || new Date().toLocaleDateString('ja-JP');
+  if (change > 0) { changeEl.textContent = t('changePrefix') + '+' + fmt(change) + t('currency'); changeEl.className = 'change positive'; }
+  else if (change < 0) { changeEl.textContent = t('changePrefix') + fmt(change) + t('currency'); changeEl.className = 'change negative'; }
+  else { changeEl.textContent = t('changePrefix') + '±0' + t('currency') + (currentLang === 'ja' ? '（横ばい）' : (currentLang === 'ko' ? ' (보합)' : ' (Flat)')); changeEl.className = 'change neutral'; }
+  document.getElementById('update-date').textContent = s.date || new Date().toLocaleDateString(currentLang === 'en' ? 'en-US' : (currentLang === 'ko' ? 'ko-KR' : 'ja-JP'));
 }
 
 function renderAccounts(accounts) {
@@ -301,7 +531,7 @@ function renderPortfolio(portfolio) {
     svgHTML += '<circle cx="100" cy="100" r="80" fill="none" stroke="' + (p.color || '#ccc') + '" stroke-width="24" stroke-dasharray="' + dash.toFixed(1) + ' ' + gap.toFixed(1) + '" stroke-dashoffset="' + (-offset) + '" transform="rotate(-90 100 100)"/>';
     offset += dash;
   });
-  svgHTML += '<text x="100" y="95" text-anchor="middle" font-size="11" fill="#64748b" font-weight="600">評価額</text><text x="100" y="115" text-anchor="middle" font-size="14" fill="#1a1a2e" font-weight="700">' + (total/10000).toFixed(0) + '万円</text>';
+  svgHTML += '<text x="100" y="95" text-anchor="middle" font-size="11" fill="#64748b" font-weight="600">' + t('evaluationLabel') + '</text><text x="100" y="115" text-anchor="middle" font-size="14" fill="#1a1a2e" font-weight="700">' + (total/10000).toFixed(0) + (currentLang === 'en' ? 'M' : '万') + (currentLang === 'en' ? ' JPY' : (currentLang === 'ko' ? '원' : '円')) + '</text>';
   svg.innerHTML = svgHTML;
   let legendHTML = '';
   portfolio.forEach(p => {
@@ -319,10 +549,10 @@ function renderCrypto(crypto) {
   let total = 0;
   crypto.forEach(c => {
     total += Number(c.value || 0);
-    html += '<div class="crypto-item"><div class="crypto-icon">' + (icons[c.icon] || '💎') + '</div><div class="crypto-name">' + c.name + '</div><div class="crypto-value">' + fmt(c.value) + '円</div><div class="crypto-date">' + (c.start_date || '') + ' 毎日' + (c.daily_amount || 500) + '円</div></div>';
+    html += '<div class="crypto-item"><div class="crypto-icon">' + (icons[c.icon] || '💎') + '</div><div class="crypto-name">' + c.name + '</div><div class="crypto-value">' + fmt(c.value) + t('currency') + '</div><div class="crypto-date">' + (c.start_date || '') + ' ' + t('dailyPrefix') + (c.daily_amount || 500) + t('currency') + '</div></div>';
   });
   container.innerHTML = html;
-  totalEl.textContent = '暗号資産合計：' + fmt(total) + '円';
+  totalEl.textContent = t('cryptoTotal') + fmt(total) + t('currency');
 }
 
 function renderSideIncome(income) {
@@ -333,10 +563,10 @@ function renderSideIncome(income) {
   let total = 0;
   income.forEach(item => {
     total += Number(item.value || 0);
-    html += '<div class="income-box" style="border-top-color:' + (item.color || '#ccc') + '"><div class="income-label">' + item.name + '</div><div class="income-value">' + fmt(item.value) + '円</div></div>';
+    html += '<div class="income-box" style="border-top-color:' + (item.color || '#ccc') + '"><div class="income-label">' + item.name + '</div><div class="income-value">' + fmt(item.value) + t('currency') + '</div></div>';
   });
   container.innerHTML = html;
-  totalEl.innerHTML = '<div class="side-total-label">今週の副業収入合計</div><div class="side-total-value">' + fmt(total) + '円</div>';
+  totalEl.innerHTML = '<div class="side-total-label">' + t('sideTotalLabel') + '</div><div class="side-total-value">' + fmt(total) + t('currency') + '</div>';
 }
 
 function renderPoints(points) {
@@ -347,20 +577,19 @@ function renderPoints(points) {
   let total = 0;
   points.forEach(p => {
     total += Number(p.value || 0);
-    html += '<div class="points-row"><div style="font-weight:600;font-size:14px;">' + p.name + '</div><div style="font-weight:700;font-family:monospace;">' + fmt(p.value) + '円</div></div>';
+    html += '<div class="points-row"><div style="font-weight:600;font-size:14px;">' + p.name + '</div><div style="font-weight:700;font-family:monospace;">' + fmt(p.value) + t('currency') + '</div></div>';
   });
   container.innerHTML = html;
-  totalEl.innerHTML = 'ポイント資産合計：<strong style="color:#1a1a2e;">' + fmt(total) + '円</strong>';
+  totalEl.innerHTML = t('pointsTotal') + '<strong style="color:#1a1a2e;">' + fmt(total) + t('currency') + '</strong>';
 }
 
 function calcVisibleTotal(data) {
   let total = 0;
   if (data.summary && data.summary[0]) total += Number(data.summary[0].total_asset || 0);
   if (data.points) total += data.points.reduce((s, p) => s + Number(p.value || 0), 0);
-  document.getElementById('visible-total').textContent = '約' + (total/10000).toFixed(1) + '万円';
+  document.getElementById('visible-total').textContent = t('visibleTotalPrefix') + '約' + (total/10000).toFixed(1) + (currentLang === 'en' ? 'M' : '万') + (currentLang === 'en' ? ' JPY' : (currentLang === 'ko' ? '원' : '円')) + ' ' + t('visibleTotalSuffix');
 }
 
-// Google Sheets連携（設定後）
 function loadFromSheets() {
   if (APPS_SCRIPT_URL.indexOf('YOUR_APPS_SCRIPT') !== -1) {
     renderAll(FALLBACK_DATA);
@@ -374,7 +603,14 @@ function loadFromSheets() {
   document.head.appendChild(script);
 }
 
-document.addEventListener('DOMContentLoaded', loadFromSheets);
+// Init
+document.addEventListener('DOMContentLoaded', function() {
+  applyLang();
+  applyView();
+  updateLangButtons();
+  updateViewButtons();
+  loadFromSheets();
+});
 </script>
 </body>
 </html>
