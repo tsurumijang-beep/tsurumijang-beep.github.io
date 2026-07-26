@@ -1,539 +1,639 @@
-
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>投資資産サマリ</title>
-  <style>
-    :root { --bg: #f5f7fa; --card: #fff; --text: #1a1a2e; --muted: #64748b; --border: #f1f5f9; }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Noto Sans JP', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
-    .navbar { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); padding: 0 16px; display: flex; justify-content: space-between; align-items: center; height: 56px; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 12px rgba(0,0,0,0.15); gap: 8px; }
-    .nav-brand { color: #fff; font-size: 15px; font-weight: 700; white-space: nowrap; }
-    .nav-links { display: flex; list-style: none; gap: 4px; align-items: center; }
-    .nav-links a { color: rgba(255,255,255,0.7); text-decoration: none; font-size: 12px; font-weight: 600; padding: 6px 10px; border-radius: 8px; transition: all 0.2s; white-space: nowrap; }
-    .nav-links a:hover, .nav-links a.active { color: #fff; background: rgba(255,255,255,0.1); }
-    .nav-controls { display: flex; gap: 6px; align-items: center; }
-    .nav-btn { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; font-size: 11px; padding: 5px 10px; border-radius: 20px; cursor: pointer; transition: all 0.2s; font-weight: 600; }
-    .nav-btn:hover { background: rgba(255,255,255,0.2); }
-    .nav-btn.active { background: rgba(255,255,255,0.25); border-color: rgba(255,255,255,0.5); }
-    .dashboard { max-width: 960px; margin: 0 auto; padding: 16px; }
-    .dashboard.mobile-mode { max-width: 100%; padding: 10px; }
-    .header { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); color: #fff; padding: 32px 24px; border-radius: 16px; text-align: center; margin-bottom: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
-    .mobile-mode .header { padding: 20px 16px; border-radius: 12px; }
-    .header h1 { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
-    .mobile-mode .header h1 { font-size: 15px; }
-    .total-asset { font-size: 42px; font-weight: 800; letter-spacing: -1px; }
-    .mobile-mode .total-asset { font-size: 28px; }
-    .total-asset .currency { font-size: 18px; font-weight: 600; margin-left: 4px; }
-    .mobile-mode .total-asset .currency { font-size: 14px; }
-    .change { font-size: 14px; margin-top: 4px; }
-    .mobile-mode .change { font-size: 12px; }
-    .change.positive { color: #4ade80; }
-    .change.negative { color: #f87171; }
-    .change.neutral { color: #94a3b8; }
-    .date { font-size: 11px; opacity: 0.7; margin-top: 4px; }
-    .hub-links { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px; }
-    .mobile-mode .hub-links { grid-template-columns: 1fr; gap: 8px; }
-    .hub-card { background: var(--card); border-radius: 16px; padding: 20px; text-align: center; text-decoration: none; color: inherit; box-shadow: 0 2px 12px rgba(0,0,0,0.06); transition: all 0.2s; border-top: 4px solid transparent; }
-    .mobile-mode .hub-card { padding: 14px; border-radius: 12px; display: flex; align-items: center; gap: 12px; text-align: left; }
-    .hub-card:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,0.1); }
-    .hub-card.blog { border-top-color: #10b981; }
-    .hub-card.youtube { border-top-color: #ef4444; }
-    .hub-card.x { border-top-color: #0ea5e9; }
-    .hub-icon { font-size: 28px; margin-bottom: 6px; }
-    .mobile-mode .hub-icon { font-size: 22px; margin-bottom: 0; }
-    .hub-title { font-size: 13px; font-weight: 700; color: #475569; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 16px; }
-    .mobile-mode .grid { grid-template-columns: 1fr; gap: 10px; }
-    .card { background: var(--card); border-radius: 16px; padding: 20px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); transition: transform 0.2s; }
-    .mobile-mode .card { padding: 14px; border-radius: 12px; }
-    .card:hover { transform: translateY(-2px); }
-    .card-title { font-size: 14px; font-weight: 700; color: var(--muted); margin-bottom: 14px; display: flex; align-items: center; gap: 6px; }
-    .mobile-mode .card-title { font-size: 13px; margin-bottom: 10px; }
-    .account-row { display: flex; justify-content: space-between; align-items: center; padding: 9px 0; border-bottom: 1px solid var(--border); font-size: 14px; }
-    .mobile-mode .account-row { padding: 7px 0; font-size: 13px; }
-    .account-row:last-child { border-bottom: none; }
-    .account-name { display: flex; align-items: center; gap: 8px; font-weight: 600; }
-    .account-value { font-weight: 700; font-family: 'SF Mono', monospace; font-size: 14px; }
-    .mobile-mode .account-value { font-size: 13px; }
-    .account-pct { font-size: 11px; color: #94a3b8; margin-left: 4px; }
-    .badge { display: inline-block; width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
-    .private { color: #94a3b8; font-size: 13px; }
-    .progress-bar { height: 6px; background: #e2e8f0; border-radius: 3px; margin-top: 10px; overflow: hidden; }
-    .progress-fill { height: 100%; border-radius: 3px; transition: width 0.8s ease; }
-    .chart-container { position: relative; height: 220px; display: flex; justify-content: center; align-items: center; }
-    .mobile-mode .chart-container { height: 180px; }
-    .legend { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; justify-content: center; }
-    .legend-item { display: flex; align-items: center; gap: 4px; font-size: 11px; color: var(--muted); }
-    .crypto-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    .mobile-mode .crypto-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
-    .crypto-item { background: #f8fafc; border-radius: 12px; padding: 14px; text-align: center; }
-    .mobile-mode .crypto-item { padding: 10px; border-radius: 10px; }
-    .crypto-icon { font-size: 24px; margin-bottom: 6px; }
-    .crypto-name { font-size: 12px; color: var(--muted); font-weight: 600; }
-    .mobile-mode .crypto-name { font-size: 11px; }
-    .crypto-value { font-size: 16px; font-weight: 700; margin-top: 4px; }
-    .mobile-mode .crypto-value { font-size: 14px; }
-    .crypto-date { font-size: 10px; color: #94a3b8; margin-top: 2px; }
-    .crypto-total { margin-top: 12px; text-align: center; font-size: 13px; font-weight: 700; color: var(--text); }
-    .side-income { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-    .mobile-mode .side-income { grid-template-columns: repeat(3, 1fr); gap: 6px; }
-    .income-box { background: #f8fafc; border-radius: 12px; padding: 14px; text-align: center; border-top: 3px solid #e2e8f0; }
-    .mobile-mode .income-box { padding: 10px 6px; border-radius: 10px; }
-    .income-label { font-size: 11px; color: var(--muted); font-weight: 600; }
-    .mobile-mode .income-label { font-size: 10px; }
-    .income-value { font-size: 18px; font-weight: 700; margin-top: 6px; }
-    .mobile-mode .income-value { font-size: 15px; }
-    .side-total { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border); text-align: center; }
-    .side-total-label { font-size: 12px; color: var(--muted); }
-    .side-total-value { font-size: 22px; font-weight: 800; color: var(--text); }
-    .mobile-mode .side-total-value { font-size: 18px; }
-    .points-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 14px; }
-    .points-row:last-child { border-bottom: none; }
-    .points-total { margin-top: 12px; text-align: center; font-size: 13px; color: var(--muted); }
-    .full-width { grid-column: 1 / -1; text-align: center; padding: 16px; }
-    .footer-note { font-size: 12px; color: #94a3b8; }
-    .mobile-mode .footer-note { font-size: 11px; padding: 12px; }
-    .loading { text-align: center; color: #94a3b8; font-size: 13px; padding: 20px; }
-    @media (max-width: 640px) {
-      .navbar { padding: 0 10px; height: 52px; }
-      .nav-brand { font-size: 13px; }
-      .nav-links a { padding: 5px 8px; font-size: 11px; }
-      .nav-btn { padding: 4px 8px; font-size: 10px; }
-      .hub-links { grid-template-columns: 1fr; gap: 8px; }
-      .hub-card { padding: 14px; display: flex; align-items: center; gap: 12px; text-align: left; }
-      .hub-icon { font-size: 22px; margin-bottom: 0; }
-      .total-asset { font-size: 32px; }
-      .grid { grid-template-columns: 1fr; gap: 10px; }
-      .card { padding: 14px; }
-      .chart-container { height: 180px; }
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>投資資産管理 | ASSET MANAGEMENT</title>
+<style>
+  :root{
+    --navy:#0d1526;
+    --navy-2:#131f36;
+    --accent:#2f6bff;
+    --bg:#f3f5f9;
+    --card:#ffffff;
+    --text:#1c2333;
+    --muted:#8a92a6;
+    --border:#e7eaf1;
+    --green:#22c55e;
+    --red:#ef4444;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:"Hiragino Kaku Gothic ProN","Noto Sans JP",-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg);color:var(--text);}
+  .app{display:flex;min-height:100vh;}
+
+  /* Sidebar */
+  .sidebar{width:230px;background:var(--navy);color:#fff;flex-shrink:0;position:sticky;top:0;height:100vh;display:flex;flex-direction:column;}
+  .brand{padding:22px 20px;border-bottom:1px solid rgba(255,255,255,.08);}
+  .brand .t1{font-size:16px;font-weight:700;letter-spacing:.02em;}
+  .brand .t2{font-size:10px;letter-spacing:.12em;color:#7c88a6;margin-top:2px;}
+  .nav{padding:10px;flex:1;}
+  .nav button{
+    width:100%;display:flex;align-items:center;gap:10px;
+    background:transparent;border:none;color:#b7c0d6;
+    padding:11px 12px;border-radius:8px;font-size:13.5px;cursor:pointer;
+    text-align:left;margin-bottom:2px;transition:background .15s,color .15s;
+  }
+  .nav button:hover{background:rgba(255,255,255,.06);color:#fff;}
+  .nav button.active{background:var(--accent);color:#fff;}
+  .nav .ic{width:16px;text-align:center;font-size:14px;}
+  .sidebar-foot{padding:14px 20px;font-size:10.5px;color:#5c6787;border-top:1px solid rgba(255,255,255,.08);}
+
+  /* Main */
+  .main{flex:1;padding:26px 30px;min-width:0;}
+  .hero{background:linear-gradient(135deg,var(--navy),var(--navy-2));color:#fff;border-radius:14px;padding:26px 30px;text-align:center;margin-bottom:22px;}
+  .hero .label{font-size:13px;color:#9aa5c2;letter-spacing:.04em;}
+  .hero .amount{font-size:44px;font-weight:800;margin:8px 0 6px;letter-spacing:.01em;}
+  .hero .diff{font-size:13px;font-weight:600;}
+  .hero .diff.up{color:#4ade80;}
+  .hero .diff.down{color:#f87171;}
+  .hero .date{font-size:11.5px;color:#6b7690;margin-top:6px;}
+
+  .links{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:22px;}
+  .linkcard{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:22px;text-align:center;cursor:pointer;transition:box-shadow .15s,transform .15s;text-decoration:none;color:var(--text);display:block;}
+  .linkcard:hover{box-shadow:0 6px 18px rgba(20,30,60,.08);transform:translateY(-2px);}
+  .linkcard .emoji{font-size:22px;margin-bottom:6px;}
+  .linkcard .name{font-weight:700;font-size:14px;}
+
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:16px;}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;}
+  .card h3{font-size:14px;margin:0 0 14px;display:flex;align-items:center;gap:6px;}
+  .row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;font-size:13.5px;border-bottom:1px dashed var(--border);}
+  .row:last-child{border-bottom:none;}
+  .row .name{display:flex;align-items:center;gap:8px;}
+  .dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+  .row .val{font-weight:700;}
+  .row .pct{color:var(--muted);font-size:11.5px;margin-left:6px;font-weight:400;}
+  .bar{height:8px;border-radius:4px;overflow:hidden;display:flex;margin-top:12px;background:var(--border);}
+  .bar span{height:100%;}
+  .cardsub{font-size:11px;color:var(--muted);font-weight:400;margin-left:auto;}
+  .row.acc-row{display:block;padding:9px 0;}
+  .row.acc-row .row-top{display:flex;justify-content:space-between;align-items:center;}
+  .row-sub{font-size:10.5px;color:var(--muted);margin-top:2px;padding-left:17px;}
+
+  .donutwrap{display:flex;flex-direction:column;align-items:center;}
+  .donut-box{position:relative;width:180px;height:180px;}
+  .donut-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;pointer-events:none;width:100%;}
+  .donut-center .l1{font-size:11px;color:var(--muted);}
+  .donut-center .l2{font-size:19px;font-weight:800;}
+  .legend2{display:grid;grid-template-columns:1fr 1fr;gap:2px 14px;width:100%;margin-top:6px;font-size:11.5px;}
+  .legend2 .li{display:flex;align-items:center;gap:6px;color:#4a5268;}
+
+  .cryptogrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .cryptocard{border:1px solid var(--border);border-radius:10px;overflow:hidden;background:#fff;}
+  .cryptobrand{padding:9px 14px;font-weight:800;font-size:14px;display:flex;align-items:center;gap:7px;letter-spacing:.01em;}
+  .cryptobrand.gmo{background:#111318;color:#fff;}
+  .cryptobrand.gmo .b1{color:#ff2d2d;font-weight:900;}
+  .cryptobrand.mel{background:#fff;color:#1c2333;border-bottom:1px solid var(--border);}
+  .cryptobrand .micon{width:17px;height:17px;background:linear-gradient(135deg,#ff5a7a,#ff8a9b);border-radius:5px;display:inline-flex;align-items:center;justify-content:center;color:#fff;font-size:10px;font-weight:900;flex-shrink:0;}
+  .cryptobody{padding:14px;text-align:center;}
+  .cryptobody .ic{font-size:15px;margin-bottom:2px;}
+  .cryptobody .nm{font-size:11.5px;color:#7ea3e0;margin-bottom:2px;}
+  .cryptobody .amt{font-size:17px;font-weight:800;}
+  .cryptobody .note{font-size:10px;color:#a8afc0;margin-top:3px;}
+  .cryptosum{text-align:center;font-size:12.5px;color:var(--muted);margin-top:12px;}
+  .cryptosum b{color:var(--text);}
+
+  .sidejobgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  .sidejobitem{border:1.5px solid var(--border);border-radius:10px;padding:14px 6px;text-align:center;font-size:12px;color:var(--muted);}
+  .sidejobitem b{display:block;font-size:15px;color:var(--text);margin-top:4px;}
+  .sidejobitem.hot{border-color:#f3a4a4;background:#fff6f6;}
+  .sidejobtotal{text-align:center;margin-top:14px;font-size:12.5px;color:var(--muted);}
+  .sidejobtotal b{display:block;font-size:18px;color:var(--text);}
+
+  .masked{letter-spacing:.08em;color:var(--muted);font-size:11.5px;}
+
+  /* Editor pages */
+  .pagehead{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;}
+  .pagehead h2{font-size:19px;margin:0;}
+  .pagehead p{font-size:12.5px;color:var(--muted);margin:4px 0 0;}
+  .btn{background:var(--accent);color:#fff;border:none;padding:9px 16px;border-radius:8px;font-size:13px;cursor:pointer;font-weight:600;}
+  .btn.secondary{background:#fff;color:var(--text);border:1px solid var(--border);}
+  .btn.danger{background:#fff;color:var(--red);border:1px solid #f3c7c7;padding:6px 10px;font-size:12px;}
+  .editlist{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:8px 20px;}
+  .editrow{display:grid;grid-template-columns:28px 1.4fr 1fr 0.9fr 1fr 44px;gap:10px;align-items:center;padding:12px 0;border-bottom:1px solid var(--border);}
+  .editrow:last-child{border-bottom:none;}
+  .editrow input[type=text], .editrow input[type=number]{
+    border:1px solid var(--border);border-radius:7px;padding:8px 10px;font-size:13px;width:100%;font-family:inherit;
+  }
+  .editrow input[type=color]{width:34px;height:30px;padding:0;border:1px solid var(--border);border-radius:7px;cursor:pointer;}
+  .addrow{padding:14px 0 4px;}
+  .subgrid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px;}
+  .fieldlabel{font-size:11px;color:var(--muted);margin-bottom:4px;display:block;}
+  .settingsblock{margin-bottom:22px;}
+  .settingsblock h3{font-size:14px;margin-bottom:10px;}
+  .toggle{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--muted);cursor:pointer;user-select:none;}
+  .toggle input{transform:scale(1.1);}
+  .save-msg{font-size:11.5px;color:var(--green);margin-left:10px;}
+  @media(max-width:1000px){
+    .grid3, .cryptogrid, .sidejobgrid, .links{grid-template-columns:1fr;}
+    .app{flex-direction:column;}
+    .sidebar{width:100%;height:auto;position:relative;}
+  }
+</style>
 </head>
 <body>
-  <nav class="navbar">
-    <div class="nav-brand">📊 <span data-i18n="siteTitle">投資資産サマリ</span></div>
-    <ul class="nav-links">
-      <li><a href="#dashboard" class="active" data-i18n="navDashboard">Dashboard</a></li>
-      <li><a href="https://hukugyoumain.blogspot.com" class="hub-card blog" target="_blank">📖 <span data-i18n="navBlog">Blog</span></a></li>
-      <li><a href="https://www.youtube.com" class="hub-card youtube" target="_blank">📺 <span data-i18n="navYoutube">YouTube</span></a></li>
-      <li><a href="https://x.com" class="hub-card x" target="_blank">🐦 <span data-i18n="navX">X</span></a></li>
-    </ul>
-    <div class="nav-controls">
-      <button class="nav-btn" id="btn-lang-jp" onclick="setLang('ja')">🇯🇵 JP</button>
-      <button class="nav-btn" id="btn-lang-ko" onclick="setLang('ko')">🇰🇷 KR</button>
-      <button class="nav-btn" id="btn-lang-en" onclick="setLang('en')">🇺🇸 EN</button>
-      <button class="nav-btn" id="btn-view-pc" onclick="setView('pc')">🖥️ PC</button>
-      <button class="nav-btn" id="btn-view-mobile" onclick="setView('mobile')">📱 SP</button>
+<div class="app">
+  <div class="sidebar">
+    <div class="brand">
+      <div class="t1">投資資産管理</div>
+      <div class="t2">ASSET MANAGEMENT</div>
     </div>
-  </nav>
-
-  <main class="dashboard" id="dashboard-root">
-    <div class="header" id="dashboard">
-      <h1 data-i18n="dashboardTitle">今週の投資資産サマリ</h1>
-      <div class="total-asset" id="total-asset">--<span class="currency" data-i18n="currency">円</span></div>
-      <div class="change neutral" id="total-change" data-i18n="loading">データを読み込み中...</div>
-      <div class="date" id="update-date">--</div>
-    </div>
-
-    <div class="hub-links">
-      <a href="https://hukugyoumain.blogspot.com" class="hub-card blog" target="_blank">
-        <div class="hub-icon">📖</div>
-        <div class="hub-title" data-i18n="hubBlog">Blog</div>
-      </a>
-      <a href="https://www.youtube.com" class="hub-card youtube" target="_blank">
-        <div class="hub-icon">📺</div>
-        <div class="hub-title" data-i18n="hubYoutube">YouTube</div>
-      </a>
-      <a href="https://x.com" class="hub-card x" target="_blank">
-        <div class="hub-icon">🐦</div>
-        <div class="hub-title" data-i18n="hubX">X / Threads</div>
-      </a>
-    </div>
-
-    <div class="grid">
-      <div class="card">
-        <div class="card-title">🏦 <span data-i18n="accountsTitle">口座別資産</span></div>
-        <div id="accounts-list"><div class="loading" data-i18n="loading">読み込み中...</div></div>
-        <div class="progress-bar"><div class="progress-fill" id="accounts-progress" style="width:0%"></div></div>
-      </div>
-
-      <div class="card">
-        <div class="card-title">📈 <span data-i18n="portfolioTitle">投資ポートフォリオ内訳</span></div>
-        <div class="chart-container">
-          <svg width="200" height="200" viewBox="0 0 200 200" id="portfolio-chart">
-            <circle cx="100" cy="100" r="80" fill="none" stroke="#e2e8f0" stroke-width="24"/>
-            <text x="100" y="100" text-anchor="middle" font-size="12" fill="#94a3b8" data-i18n="loading">読込中</text>
-          </svg>
-        </div>
-        <div class="legend" id="portfolio-legend"></div>
-      </div>
-
-      <div class="card">
-        <div class="card-title">₿ <span data-i18n="cryptoTitle">暗号資産（現物）</span></div>
-        <div class="crypto-grid" id="crypto-grid"><div class="loading" data-i18n="loading">読み込み中...</div></div>
-        <div class="crypto-total" id="crypto-total"></div>
-      </div>
-
-      <div class="card">
-        <div class="card-title">💼 <span data-i18n="sideIncomeTitle">副業状況（今週）</span></div>
-        <div class="side-income" id="side-income"><div class="loading" data-i18n="loading">読み込み中...</div></div>
-        <div class="side-total" id="side-total"></div>
-      </div>
-
-      <div class="card">
-        <div class="card-title">🎯 <span data-i18n="pointsTitle">ポイント投資</span></div>
-        <div id="points-list"><div class="loading" data-i18n="loading">読み込み中...</div></div>
-        <div class="points-total" id="points-total"></div>
-      </div>
-
-      <div class="card">
-        <div class="card-title">🏛 <span data-i18n="bankTitle">銀行預金</span></div>
-        <div class="account-row"><div class="account-name">楽天銀行</div><div class="private" data-i18n="private">※非公開※</div></div>
-        <div class="account-row"><div class="account-name">Paypay銀行</div><div class="private" data-i18n="private">※非公開※</div></div>
-        <div class="account-row"><div class="account-name">りそな銀行</div><div class="private" data-i18n="private">※非公開※</div></div>
-      </div>
-    </div>
-
-    <div class="card full-width footer-note">
-      <div>💡 <span data-i18n="visibleTotalPrefix">投資資産＋ポイント資産で確認可能な規模：</span><strong id="visible-total">計算中...</strong><span data-i18n="visibleTotalSuffix">（銀行預金除く）</span></div>
-      <div style="margin-top:8px;font-size:11px;"><span data-i18n="dataSource">データソース：Google Sheets → 自動更新</span> | <span data-i18n="lastUpdated">最終更新：</span><span id="last-updated">--</span></div>
-    </div>
-  </main>
+    <div class="nav" id="nav"></div>
+    <div class="sidebar-foot">左メニューでデータを更新すると<br>ダッシュボードに自動反映されます</div>
+  </div>
+  <div class="main" id="main"></div>
+</div>
 
 <script>
-const i18n = {
-  ja: {
-    siteTitle: '投資資産サマリ', navDashboard: 'Dashboard', navBlog: 'Blog', navYoutube: 'YouTube', navX: 'X',
-    dashboardTitle: '今週の投資資産サマリ', currency: '円', loading: '読み込み中...',
-    hubBlog: 'Blog', hubYoutube: 'YouTube', hubX: 'X / Threads',
-    accountsTitle: '口座別資産', portfolioTitle: '投資ポートフォリオ内訳', cryptoTitle: '暗号資産（現物）',
-    sideIncomeTitle: '副業状況（今週）', pointsTitle: 'ポイント投資', bankTitle: '銀行預金', private: '※非公開※',
-    evaluationLabel: '評価額', dailyPrefix: '毎日', changePrefix: '前週比：',
-    cryptoTotal: '暗号資産合計：', sideTotalLabel: '今週の副業収入合計', pointsTotal: 'ポイント資産合計：',
-    visibleTotalPrefix: '投資資産＋ポイント資産で確認可能な規模：', visibleTotalSuffix: '（銀行預金除く）',
-    dataSource: 'データソース：Google Sheets → 自動更新', lastUpdated: '最終更新：'
-  },
-  ko: {
-    siteTitle: '투자자산 요약', navDashboard: '대시보드', navBlog: '블로그', navYoutube: '유튜브', navX: 'X',
-    dashboardTitle: '이번 주 투자 자산 요약', currency: '원', loading: '불러오는 중...',
-    hubBlog: '블로그', hubYoutube: '유튜브', hubX: 'X / 스레드',
-    accountsTitle: '계좌별 자산', portfolioTitle: '투자 포트폴리오 내역', cryptoTitle: '암호화폐(현물)',
-    sideIncomeTitle: '부업 현황(이번 주)', pointsTitle: '포인트 투자', bankTitle: '은행 예금', private: '※비공개※',
-    evaluationLabel: '평가액', dailyPrefix: '매일', changePrefix: '전주비：',
-    cryptoTotal: '암호화폐 합계：', sideTotalLabel: '이번 주 부업 수입 합계', pointsTotal: '포인트 자산 합계：',
-    visibleTotalPrefix: '투자자산+포인트자산 확인 가능 규모: ', visibleTotalSuffix: '(은행 예금 제외)',
-    dataSource: '데이터 출처: Google Sheets → 자동 업데이트', lastUpdated: '최종 업데이트: '
-  },
-  en: {
-    siteTitle: 'Investment Summary', navDashboard: 'Dashboard', navBlog: 'Blog', navYoutube: 'YouTube', navX: 'X',
-    dashboardTitle: 'Weekly Investment Summary', currency: ' JPY', loading: 'Loading...',
-    hubBlog: 'Blog', hubYoutube: 'YouTube', hubX: 'X / Threads',
-    accountsTitle: 'Accounts', portfolioTitle: 'Portfolio Breakdown', cryptoTitle: 'Crypto Assets',
-    sideIncomeTitle: 'Side Income (This Week)', pointsTitle: 'Point Investments', bankTitle: 'Bank Deposits', private: '※Private※',
-    evaluationLabel: 'Valuation', dailyPrefix: 'Daily ', changePrefix: 'WoW: ',
-    cryptoTotal: 'Crypto Total: ', sideTotalLabel: 'Weekly Side Income Total', pointsTotal: 'Point Total: ',
-    visibleTotalPrefix: 'Visible Assets (excl. Bank): ', visibleTotalSuffix: '',
-    dataSource: 'Data: Google Sheets → Auto Update', lastUpdated: 'Last Updated: '
-  }
-};
-
-let currentLang = localStorage.getItem('dash-lang') || 'ja';
-let currentView = localStorage.getItem('dash-view') || 'pc';
-
-function setLang(lang) {
-  currentLang = lang;
-  localStorage.setItem('dash-lang', lang);
-  applyLang();
-  updateLangButtons();
-  renderAll(lastLoadedData || FALLBACK_DATA);
-}
-
-function setView(view) {
-  currentView = view;
-  localStorage.setItem('dash-view', view);
-  applyView();
-  updateViewButtons();
-}
-
-function applyLang() {
-  var tr = i18n[currentLang];
-  document.querySelectorAll('[data-i18n]').forEach(function(el) {
-    var key = el.getAttribute('data-i18n');
-    if (tr[key]) el.textContent = tr[key];
-  });
-}
-
-function applyView() {
-  var root = document.getElementById('dashboard-root');
-  if (currentView === 'mobile') root.classList.add('mobile-mode');
-  else root.classList.remove('mobile-mode');
-}
-
-function updateLangButtons() {
-  ['jp','ko','en'].forEach(function(l) {
-    var btn = document.getElementById('btn-lang-' + l);
-    var active = (l === 'jp' && currentLang === 'ja') || (l === 'ko' && currentLang === 'ko') || (l === 'en' && currentLang === 'en');
-    btn.classList.toggle('active', active);
-  });
-}
-
-function updateViewButtons() {
-  document.getElementById('btn-view-pc').classList.toggle('active', currentView === 'pc');
-  document.getElementById('btn-view-mobile').classList.toggle('active', currentView === 'mobile');
-}
-
-const SHEET_ID = '1eJJPWd1SGvQzQN1PK2JcSoCiZMVdQnzyekwdxgou1_k';
-let lastLoadedData = null;
-function fmt(n){ return Number(n).toLocaleString(currentLang === 'en' ? 'en-US' : (currentLang === 'ko' ? 'ko-KR' : 'ja-JP')); }
-
-const FALLBACK_DATA = {
-  summary: [{ total_asset: 6365859, change: 0, date: '2026-07-26' }],
+/* ============ 상태(State) ============ */
+const DEFAULT_STATE = {
+  links: { blog:"https://hukugyoumain.blogspot.com", youtube:"", x:"" },
+  prevTotal: 511554834,
   accounts: [
-    { name: '楽天証券', value: 5344566, change: -34998, percent: 83.9, color: '#ef4444' },
-    { name: 'GMOコイン', value: 409641, change: 10766, percent: 6.4, color: '#3b82f6' },
-    { name: 'MOOMOO', value: 365539, change: 5051, percent: 5.7, color: '#f59e0b' },
-    { name: 'FX高金利積立', value: 199553, change: 42926, percent: 3.1, color: '#8b5cf6' },
-    { name: 'iDeCo', value: 26891, change: 9682, percent: 0.4, color: '#10b981' },
-    { name: 'メルコイン', value: 19669, change: 13792, percent: 0.3, color: '#ec4899' }
+    {id:1, name:"楽天証券", amount:5344566, color:"#ef4444", startDate:"2023-04-01"},
+    {id:2, name:"GMOコイン", amount:409641, color:"#3b82f6", startDate:"2024-11-14"},
+    {id:3, name:"MOOMOO", amount:365539, color:"#f59e0b", startDate:"2024-06-01"},
+    {id:4, name:"FX高金利積立", amount:199553, color:"#8b5cf6", startDate:"2024-01-15"},
+    {id:5, name:"iDeCo", amount:26891, color:"#10b981", startDate:"2023-09-01"},
+    {id:6, name:"メルコイン", amount:19669, color:"#ec4899", startDate:"2026-07-05"},
   ],
   portfolio: [
-    { category: '中国関連', value: 2519043, percent: 41.2, color: '#ef4444' },
-    { category: 'ビットコイン関連', value: 1943909, percent: 31.8, color: '#f59e0b' },
-    { category: 'インデックス', value: 377137, percent: 6.2, color: '#8b5cf6' },
-    { category: 'AI·量子', value: 254593, percent: 4.2, color: '#06b6d4' },
-    { category: 'バイオ·医療', value: 128802, percent: 2.1, color: '#10b981' },
-    { category: '債券ETF', value: 102600, percent: 1.7, color: '#64748b' }
+    {id:1, name:"中国関連", pct:41.2, color:"#ef4444"},
+    {id:2, name:"ビットコイン関連", pct:40, color:"#f59e0b"},
+    {id:3, name:"インデックス", pct:6.2, color:"#8b5cf6"},
+    {id:4, name:"AI・量子", pct:4.2, color:"#3b82f6"},
+    {id:5, name:"バイオ・医療", pct:2.1, color:"#10b981"},
+    {id:6, name:"債券ETF", pct:1.7, color:"#06b6d4"},
   ],
+  portfolioEval: 5380000,
   crypto: [
-    { name: 'ビットコイン①', value: 224017, start_date: '2024.11.14〜', icon: 'btc1', daily_amount: 500 },
-    { name: 'ソラナ(SOL)', value: 188580, start_date: '2024.11.14〜', icon: 'sol', daily_amount: 500 },
-    { name: 'ビットコイン②', value: 3916, start_date: '2026.7.5〜', icon: 'btc2', daily_amount: 500 },
-    { name: 'イーサリアム', value: 3915, start_date: '2026.7.5〜', icon: 'eth', daily_amount: 500 }
+    {id:1, name:"ビットコイン①", amount:1224017, note:"2024.11.14〜 毎日500円", icon:"₿", color:"#f59e0b"},
+    {id:2, name:"ソラナ(SOL)", amount:2188580, note:"2024.11.14〜 毎日500円", icon:"◎", color:"#8b5cf6"},
+    {id:3, name:"ビットコイン②", amount:500000, note:"2026.7.5〜 毎日500円", icon:"₿", color:"#f59e0b"},
+    {id:4, name:"イーサリアム", amount:45889, note:"2026.7.5〜 毎日500円", icon:"♦", color:"#3b82f6"},
   ],
-  sideIncome: [
-    { name: 'メルカリ', value: 6500, color: '#ef4444' },
-    { name: 'FX売買', value: 1000, color: '#3b82f6' },
-    { name: 'その他', value: 0, color: '#64748b' }
+  sidejobs: [
+    {id:1, name:"メルカリ", amount:12000},
+    {id:2, name:"FX売買", amount:50000},
+    {id:3, name:"その他", amount:0},
   ],
   points: [
-    { name: 'PAYPAY【金投資】', value: 12000 },
-    { name: '楽天ポイント【ビットコイン】', value: 9900 }
-  ]
+    {id:1, name:"PAYPAY【金投資】", amount:12000},
+    {id:2, name:"楽天ポイント【ビットコイン】", amount:12500},
+  ],
+  banks: [
+    {id:1, name:"楽天銀行", amount:0},
+    {id:2, name:"Paypay銀行", amount:0},
+    {id:3, name:"りそな銀行", amount:0},
+  ],
+  banksHidden: true,
 };
 
-function t(key) { return i18n[currentLang][key] || key; }
+let state = loadState();
+let activeView = "dashboard";
 
-function formatDate(dateVal) {
-  if (!dateVal) return '';
-  if (typeof dateVal === 'number') {
-    var d = new Date(dateVal);
-    return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
-  }
-  return String(dateVal);
-}
-
-function renderAll(data) {
-  lastLoadedData = data;
-  renderSummary(data.summary);
-  renderAccounts(data.accounts);
-  renderPortfolio(data.portfolio);
-  renderCrypto(data.crypto);
-  renderSideIncome(data.sideIncome);
-  renderPoints(data.points);
-  calcVisibleTotal(data);
-  document.getElementById('last-updated').textContent = new Date().toLocaleString(currentLang === 'en' ? 'en-US' : (currentLang === 'ko' ? 'ko-KR' : 'ja-JP'));
-}
-
-function renderSummary(summary) {
-  if (!summary || !summary.length) return;
-  var s = summary[0];
-  document.getElementById('total-asset').innerHTML = fmt(s.total_asset || 0) + '<span class="currency">' + t('currency') + '</span>';
-  var changeEl = document.getElementById('total-change');
-  var change = Number(s.change || 0);
-  if (change > 0) { changeEl.textContent = t('changePrefix') + '+' + fmt(change) + t('currency'); changeEl.className = 'change positive'; }
-  else if (change < 0) { changeEl.textContent = t('changePrefix') + fmt(change) + t('currency'); changeEl.className = 'change negative'; }
-  else { changeEl.textContent = t('changePrefix') + '±0' + t('currency') + (currentLang === 'ja' ? '（横ばい）' : (currentLang === 'ko' ? ' (보합)' : ' (Flat)')); changeEl.className = 'change neutral'; }
-  document.getElementById('update-date').textContent = formatDate(s.date);
-}
-
-function renderAccounts(accounts) {
-  if (!accounts) return;
-  var container = document.getElementById('accounts-list');
-  var html = '';
-  var maxPct = 0;
-  accounts.forEach(function(acc) {
-    var pct = Number(acc.percent || 0);
-    if (pct > maxPct) maxPct = pct;
-    html += '<div class="account-row"><div class="account-name"><span class="badge" style="background:' + (acc.color || '#ccc') + '"></span>' + acc.name + '</div><div><span class="account-value">' + fmt(acc.value) + '</span><span class="account-pct">' + pct + '%</span></div></div>';
-  });
-  container.innerHTML = html;
-  var prog = document.getElementById('accounts-progress');
-  prog.style.width = maxPct + '%';
-  prog.style.background = accounts[0] ? accounts[0].color : '#ccc';
-}
-
-function renderPortfolio(portfolio) {
-  if (!portfolio || !portfolio.length) return;
-  var svg = document.getElementById('portfolio-chart');
-  var legend = document.getElementById('portfolio-legend');
-  var total = portfolio.reduce(function(sum, p) { return sum + Number(p.value || 0); }, 0);
-  var offset = 0;
-  var circumference = 2 * Math.PI * 80;
-  var svgHTML = '';
-  portfolio.forEach(function(p) {
-    var pct = Number(p.percent || 0);
-    var dash = (pct / 100) * circumference;
-    var gap = circumference - dash;
-    svgHTML += '<circle cx="100" cy="100" r="80" fill="none" stroke="' + (p.color || '#ccc') + '" stroke-width="24" stroke-dasharray="' + dash.toFixed(1) + ' ' + gap.toFixed(1) + '" stroke-dashoffset="' + (-offset) + '" transform="rotate(-90 100 100)"/>';
-    offset += dash;
-  });
-  var unit = currentLang === 'en' ? 'M JPY' : (currentLang === 'ko' ? '만원' : '万円');
-  svgHTML += '<text x="100" y="95" text-anchor="middle" font-size="11" fill="#64748b" font-weight="600">' + t('evaluationLabel') + '</text><text x="100" y="115" text-anchor="middle" font-size="14" fill="#1a1a2e" font-weight="700">' + (total/10000).toFixed(0) + unit + '</text>';
-  svg.innerHTML = svgHTML;
-  var legendHTML = '';
-  portfolio.forEach(function(p) {
-    legendHTML += '<div class="legend-item"><span class="badge" style="background:' + (p.color || '#ccc') + '"></span>' + p.category + ' ' + p.percent + '%</div>';
-  });
-  legend.innerHTML = legendHTML;
-}
-
-function renderCrypto(crypto) {
-  if (!crypto) return;
-  var container = document.getElementById('crypto-grid');
-  var totalEl = document.getElementById('crypto-total');
-  var icons = { btc1: '🟠', btc2: '🟠', sol: '🟣', eth: '🔷' };
-  var html = '';
-  var total = 0;
-  crypto.forEach(function(c) {
-    total += Number(c.value || 0);
-    html += '<div class="crypto-item"><div class="crypto-icon">' + (icons[c.icon] || '💎') + '</div><div class="crypto-name">' + c.name + '</div><div class="crypto-value">' + fmt(c.value) + t('currency') + '</div><div class="crypto-date">' + (c.start_date || '') + ' ' + t('dailyPrefix') + (c.daily_amount || 500) + t('currency') + '</div></div>';
-  });
-  container.innerHTML = html;
-  totalEl.textContent = t('cryptoTotal') + fmt(total) + t('currency');
-}
-
-function renderSideIncome(income) {
-  if (!income) return;
-  var container = document.getElementById('side-income');
-  var totalEl = document.getElementById('side-total');
-  var html = '';
-  var total = 0;
-  income.forEach(function(item) {
-    total += Number(item.value || 0);
-    html += '<div class="income-box" style="border-top-color:' + (item.color || '#ccc') + '"><div class="income-label">' + item.name + '</div><div class="income-value">' + fmt(item.value) + t('currency') + '</div></div>';
-  });
-  container.innerHTML = html;
-  totalEl.innerHTML = '<div class="side-total-label">' + t('sideTotalLabel') + '</div><div class="side-total-value">' + fmt(total) + t('currency') + '</div>';
-}
-
-function renderPoints(points) {
-  if (!points) return;
-  var container = document.getElementById('points-list');
-  var totalEl = document.getElementById('points-total');
-  var html = '';
-  var total = 0;
-  points.forEach(function(p) {
-    total += Number(p.value || 0);
-    html += '<div class="points-row"><div style="font-weight:600;font-size:14px;">' + p.name + '</div><div style="font-weight:700;font-family:monospace;">' + fmt(p.value) + t('currency') + '</div></div>';
-  });
-  container.innerHTML = html;
-  totalEl.innerHTML = t('pointsTotal') + '<strong style="color:#1a1a2e;">' + fmt(total) + t('currency') + '</strong>';
-}
-
-function calcVisibleTotal(data) {
-  var total = 0;
-  if (data.summary && data.summary[0]) total += Number(data.summary[0].total_asset || 0);
-  if (data.points) total += data.points.reduce(function(s, p) { return s + Number(p.value || 0); }, 0);
-  var unit = currentLang === 'en' ? 'M JPY' : (currentLang === 'ko' ? '만원' : '万円');
-  document.getElementById('visible-total').textContent = t('visibleTotalPrefix') + '約' + (total/10000).toFixed(1) + unit + ' ' + t('visibleTotalSuffix');
-}
-
-const SHEET_TABS = ['summary', 'accounts', 'portfolio', 'crypto', 'sideIncome', 'points'];
-const NUMERIC_FIELDS = {
-  summary: ['total_asset', 'change'],
-  accounts: ['value', 'change', 'percent'],
-  portfolio: ['value', 'percent'],
-  crypto: ['value', 'daily_amount'],
-  sideIncome: ['value'],
-  points: ['value']
-};
-
-function sheetCsvUrl(tabName) {
-  return 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/gviz/tq?tqx=out:csv&sheet=' + encodeURIComponent(tabName);
-}
-
-// 간단한 CSV 파서 (따옴표로 감싼 값, 콤마, 줄바꿈 처리)
-function parseCSV(text) {
-  var rows = [];
-  var row = [];
-  var field = '';
-  var inQuotes = false;
-  for (var i = 0; i < text.length; i++) {
-    var c = text[i];
-    if (inQuotes) {
-      if (c === '"') {
-        if (text[i + 1] === '"') { field += '"'; i++; }
-        else inQuotes = false;
-      } else field += c;
-    } else {
-      if (c === '"') inQuotes = true;
-      else if (c === ',') { row.push(field); field = ''; }
-      else if (c === '\n' || c === '\r') {
-        if (c === '\r' && text[i + 1] === '\n') i++;
-        row.push(field); field = '';
-        if (!(row.length === 1 && row[0] === '')) rows.push(row);
-        row = [];
-      } else field += c;
+function loadState(){
+  try{
+    const raw = localStorage.getItem("assetDashboardData");
+    if(raw){
+      const parsed = JSON.parse(raw);
+      if(Array.isArray(parsed.accounts)){
+        parsed.accounts.forEach(a=>{ if(!a.startDate) a.startDate = todayStr(); });
+      }
+      return parsed;
     }
-  }
-  if (field !== '' || row.length) { row.push(field); rows.push(row); }
-  return rows;
+  }catch(e){}
+  return JSON.parse(JSON.stringify(DEFAULT_STATE));
 }
+function todayStr(){ return new Date().toISOString().slice(0,10); }
+function elapsedDays(startDateStr){
+  if(!startDateStr) return 0;
+  const start = new Date(startDateStr + "T00:00:00");
+  const now = new Date();
+  now.setHours(0,0,0,0);
+  const diff = Math.floor((now - start) / 86400000);
+  return diff >= 0 ? diff + 1 : 0; // 開始日を1日目として数える
+}
+function saveState(){
+  localStorage.setItem("assetDashboardData", JSON.stringify(state));
+}
+function uid(){ return Date.now() + Math.floor(Math.random()*1000); }
+function yen(n){ return Number(n||0).toLocaleString("ja-JP") + "円"; }
+function sum(arr, key){ return arr.reduce((a,b)=>a+(Number(b[key])||0),0); }
 
-function csvToObjects(text, numericFields) {
-  var rows = parseCSV(text).filter(function(r) { return r.length && r.some(function(v) { return v !== ''; }); });
-  if (!rows.length) return [];
-  var headers = rows[0].map(function(h) { return h.trim(); });
-  return rows.slice(1).map(function(r) {
-    var obj = {};
-    headers.forEach(function(h, idx) {
-      var val = r[idx] !== undefined ? r[idx].trim() : '';
-      obj[h] = (numericFields.indexOf(h) !== -1 && val !== '') ? Number(val) : val;
+/* ============ 네비게이션 ============ */
+const NAV_ITEMS = [
+  {key:"dashboard", icon:"▦", label:"ダッシュボード"},
+  {key:"accounts", icon:"🏦", label:"口座別資産"},
+  {key:"portfolio", icon:"📊", label:"ポートフォリオ"},
+  {key:"crypto", icon:"🪙", label:"暗号資産"},
+  {key:"sidejob", icon:"💼", label:"副業・収入"},
+  {key:"settings", icon:"⚙", label:"設定"},
+];
+
+function renderNav(){
+  const nav = document.getElementById("nav");
+  nav.innerHTML = NAV_ITEMS.map(it => `
+    <button data-key="${it.key}" class="${activeView===it.key?'active':''}">
+      <span class="ic">${it.icon}</span>${it.label}
+    </button>`).join("");
+  nav.querySelectorAll("button").forEach(b=>{
+    b.addEventListener("click", ()=>{
+      activeView = b.dataset.key;
+      render();
     });
-    return obj;
   });
 }
 
-function loadFromSheets() {
-  Promise.all(SHEET_TABS.map(function(tab) {
-    return fetch(sheetCsvUrl(tab))
-      .then(function(res) {
-        if (!res.ok) throw new Error('시트 로드 실패: ' + tab);
-        return res.text();
-      })
-      .then(function(text) { return csvToObjects(text, NUMERIC_FIELDS[tab] || []); });
-  }))
-  .then(function(results) {
-    var data = {};
-    SHEET_TABS.forEach(function(tab, idx) { data[tab] = results[idx]; });
-    renderAll(data);
-  })
-  .catch(function(err) {
-    console.error('Google Sheets CSV 로드 오류:', err);
-    renderAll(FALLBACK_DATA);
-  });
+/* ============ 메인 렌더러 ============ */
+function render(){
+  renderNav();
+  const main = document.getElementById("main");
+  if(activeView==="dashboard") main.innerHTML = viewDashboard();
+  else if(activeView==="accounts") main.innerHTML = viewEditList("accounts","口座別資産","口座の残高を編集すると、ダッシュボードに即反映されます。");
+  else if(activeView==="portfolio") main.innerHTML = viewPortfolioEdit();
+  else if(activeView==="crypto") main.innerHTML = viewCryptoEdit();
+  else if(activeView==="sidejob") main.innerHTML = viewSidejobEdit();
+  else if(activeView==="settings") main.innerHTML = viewSettings();
+
+  attachHandlers();
 }
 
-document.addEventListener('DOMContentLoaded', function() {
-  applyLang();
-  applyView();
-  updateLangButtons();
-  updateViewButtons();
-  loadFromSheets();
-});
+/* ============ 대시보드 뷰 ============ */
+function viewDashboard(){
+  // GMOコイン＝暗号資産の上半分の合計、メルコイン＝下半分の合計 を自動反映
+  const cryptoList = state.crypto;
+  const half = Math.ceil(cryptoList.length/2);
+  const cryptoTopSum = sum(cryptoList.slice(0,half),"amount");
+  const cryptoBottomSum = sum(cryptoList.slice(half),"amount");
+  const displayAccounts = state.accounts.map(a=>{
+    if(a.name==="GMOコイン") return {...a, amount: cryptoTopSum, linked:true};
+    if(a.name==="メルコイン") return {...a, amount: cryptoBottomSum, linked:true};
+    return a;
+  });
+
+  const accTotal = sum(displayAccounts,"amount");
+  const rakutenAmount = displayAccounts.find(a=>a.name==="楽天証券")?.amount || 0;
+  const total = accTotal; // 暗号資産はGMO/メルコイン経由で既に合算済みのため二重計上しない
+  const diff = total - Number(state.prevTotal||0);
+  const diffClass = diff>=0 ? "up":"down";
+  const diffSign = diff>=0 ? "+":"";
+  const today = new Date().toISOString().slice(0,10).replace(/-/g,"-");
+
+  const accRows = displayAccounts.map(a=>`
+    <div class="row acc-row">
+      <div class="row-top">
+        <div class="name"><span class="dot" style="background:${a.color}"></span>${a.name}</div>
+        <div class="val">${yen(a.amount)} <span class="pct">${accTotal? (a.amount/accTotal*100).toFixed(1):0}%</span></div>
+      </div>
+      <div class="row-sub">${a.startDate ? `開始日 ${a.startDate} ・ 経過 ${elapsedDays(a.startDate)}日` : ''}</div>
+    </div>`).join("");
+  const accBar = displayAccounts.map(a=>`<span style="width:${accTotal? (a.amount/accTotal*100):0}%;background:${a.color}"></span>`).join("");
+
+  const pfRows = state.portfolio.map(p=>`
+    <div class="li"><span class="dot" style="background:${p.color}"></span>${p.name} ${p.pct}%</div>`).join("");
+
+  const cryptoTotal = sum(state.crypto,"amount");
+  const cryptoHalf = Math.ceil(state.crypto.length/2);
+  const cryptoCards = state.crypto.map((c,i)=>{
+    const isGmo = i < cryptoHalf;
+    const brand = isGmo
+      ? `<div class="cryptobrand gmo"><span class="b1">GMO</span>コイン</div>`
+      : `<div class="cryptobrand mel"><span class="micon">m</span>mercoin</div>`;
+    return `
+    <div class="cryptocard">
+      ${brand}
+      <div class="cryptobody">
+        <div class="ic" style="color:${c.color}">${c.icon}</div>
+        <div class="nm">${c.name}</div>
+        <div class="amt">${yen(c.amount)}</div>
+        <div class="note">${c.note}</div>
+      </div>
+    </div>`;
+  }).join("");
+
+  const sidejobTotal = sum(state.sidejobs,"amount");
+  const sidejobCards = state.sidejobs.map(s=>`
+    <div class="sidejobitem ${s.amount>0?'hot':''}">${s.name}<b>${yen(s.amount)}</b></div>`).join("");
+
+  const pointTotal = sum(state.points,"amount");
+  const pointRows = state.points.map(p=>`
+    <div class="row"><div class="name">${p.name}</div><div class="val">${yen(p.amount)}</div></div>`).join("");
+
+  const bankRows = state.banks.map(b=>`
+    <div class="row"><div class="name">${b.name}</div><div class="val">${state.banksHidden? '<span class="masked">※非公開</span>' : yen(b.amount)}</div></div>`).join("");
+
+  return `
+    <div class="hero">
+      <div class="label">今週の投資資産サマリ</div>
+      <div class="amount">${yen(total)}</div>
+      <div class="diff ${diffClass}">前週比：${diffSign}${diff.toLocaleString("ja-JP")}円</div>
+      <div class="date">${today}</div>
+    </div>
+
+    <div class="grid3">
+      <div class="card">
+        <h3>🏛 口座別資産 <span class="cardsub">本日：${today}</span></h3>
+        ${accRows}
+        <div class="bar">${accBar}</div>
+      </div>
+      <div class="card">
+        <h3>✉ 楽天証券ポートフォリオ内訳</h3>
+        <div class="donutwrap">
+          <div class="donut-box">
+            ${buildDonutSVG(state.portfolio)}
+            <div class="donut-center"><div class="l1">評価額</div><div class="l2">${Math.round(rakutenAmount/10000).toLocaleString("ja-JP")}万円</div></div>
+          </div>
+          <div class="legend2">${pfRows}</div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>🔶 暗号資産（現物）</h3>
+        <div class="cryptogrid">${cryptoCards}</div>
+        <div class="cryptosum">暗号資産合計：<b>${yen(cryptoTotal)}</b></div>
+      </div>
+    </div>
+
+    <div class="grid3">
+      <div class="card">
+        <h3>🧳 副業状況（今週）</h3>
+        <div class="sidejobgrid">${sidejobCards}</div>
+        <div class="sidejobtotal">今週の副業収入合計<b>${yen(sidejobTotal)}</b></div>
+      </div>
+      <div class="card">
+        <h3>◎ ポイント投資</h3>
+        ${pointRows}
+        <div class="sidejobtotal" style="margin-top:14px;">ポイント資産合計：<b style="font-size:14px;display:inline;">${yen(pointTotal)}</b></div>
+      </div>
+      <div class="card">
+        <h3>🏦 銀行預金</h3>
+        ${bankRows}
+      </div>
+    </div>
+
+    <div class="links">
+      <a class="linkcard" href="${state.links.blog||'#'}" target="_blank"><div class="emoji">📖</div><div class="name">Blog</div></a>
+      <a class="linkcard" href="${state.links.youtube||'#'}" target="_blank"><div class="emoji">📺</div><div class="name">YouTube</div></a>
+      <a class="linkcard" href="${state.links.x||'#'}" target="_blank"><div class="emoji">🦋</div><div class="name">X / Threads</div></a>
+    </div>
+  `;
+}
+
+function buildDonutSVG(portfolio){
+  const size = 180, r = 66, sw = 22, cx = size/2, cy = size/2;
+  const circumference = 2 * Math.PI * r;
+  const total = sum(portfolio,"pct") || 1;
+  let acc = 0;
+  const segs = portfolio.map(p=>{
+    const frac = (Number(p.pct)||0) / total;
+    const dash = frac * circumference;
+    const gap = circumference - dash;
+    const offset = -acc;
+    acc += dash;
+    return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${p.color}" stroke-width="${sw}"
+              stroke-dasharray="${dash.toFixed(2)} ${gap.toFixed(2)}" stroke-dashoffset="${offset.toFixed(2)}"></circle>`;
+  }).join("");
+  return `
+    <svg viewBox="0 0 ${size} ${size}" width="${size}" height="${size}">
+      <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#eef0f5" stroke-width="${sw}"></circle>
+      <g transform="rotate(-90 ${cx} ${cy})">${segs}</g>
+    </svg>`;
+}
+
+/* ============ 공통 편집 리스트 (계좌별자산) ============ */
+function viewEditList(key, title, desc){
+  const list = state[key];
+  let cryptoTopSum = 0, cryptoBottomSum = 0;
+  if(key==="accounts"){
+    const half = Math.ceil(state.crypto.length/2);
+    cryptoTopSum = sum(state.crypto.slice(0,half),"amount");
+    cryptoBottomSum = sum(state.crypto.slice(half),"amount");
+  }
+  const rows = list.map(item=>{
+    const isGmo = key==="accounts" && item.name==="GMOコイン";
+    const isMel = key==="accounts" && item.name==="メルコイン";
+    const linked = isGmo || isMel;
+    const linkedVal = isGmo ? cryptoTopSum : cryptoBottomSum;
+    return `
+    <div class="editrow" data-id="${item.id}">
+      <input type="color" class="f-color" value="${item.color}">
+      <input type="text" class="f-name" value="${item.name}" placeholder="名称">
+      <input type="number" class="f-amount" value="${linked ? linkedVal : item.amount}" placeholder="金額" ${linked?'disabled title="暗号資産（現物）から自動計算されます"':''}>
+      ${key==="accounts" ? `<input type="date" class="f-startdate" value="${item.startDate||''}" title="投資開始日">` : '<div></div>'}
+      <div style="font-size:10.5px;color:var(--muted);">${linked?'🔗 暗号資産と連動':(key==="accounts"?`経過 ${elapsedDays(item.startDate)}日`:'')}</div>
+      <button class="btn danger f-del">削除</button>
+    </div>`;
+  }).join("");
+  return `
+    <div class="pagehead">
+      <div><h2>${title}</h2><p>${desc}${key==="accounts"?' ※GMOコインは暗号資産の上半分、メルコインは下半分の合計が自動で入ります。':''}</p></div>
+      <button class="btn" id="addItem" data-key="${key}">＋ 項目を追加</button>
+    </div>
+    <div class="editlist" data-key="${key}">${rows || '<div style="padding:20px;color:var(--muted);font-size:13px;">まだ項目がありません</div>'}</div>
+  `;
+}
+
+/* ============ 포트폴리오 편집 뷰 ============ */
+function viewPortfolioEdit(){
+  const list = state.portfolio;
+  const pctTotal = sum(list,"pct");
+  const rakutenAmount = state.accounts.find(a=>a.name==="楽天証券")?.amount || 0;
+  const rows = list.map(item=>`
+    <div class="editrow" data-id="${item.id}">
+      <input type="color" class="f-color" value="${item.color}">
+      <input type="text" class="f-name" value="${item.name}" placeholder="名称">
+      <input type="number" step="0.1" class="f-pct" value="${item.pct}" placeholder="比率%">
+      <div></div><div></div>
+      <button class="btn danger f-del">削除</button>
+    </div>`).join("");
+  return `
+    <div class="pagehead">
+      <div><h2>ポートフォリオ</h2><p>比率合計は100%を目安にしてください（現在 ${pctTotal.toFixed(1)}%）。</p></div>
+      <button class="btn" id="addItem" data-key="portfolio">＋ 項目を追加</button>
+    </div>
+    <div class="editlist" data-key="portfolio">${rows}</div>
+    <div class="card" style="margin-top:16px;max-width:320px;">
+      <span class="fieldlabel">評価額（円） 🔗 口座別資産の「楽天証券」と連動</span>
+      <input type="number" value="${rakutenAmount}" disabled title="口座別資産の楽天証券から自動計算されます" style="width:100%;padding:9px 10px;border:1px solid var(--border);border-radius:7px;font-size:13px;background:#f6f7fa;color:var(--muted);">
+    </div>
+  `;
+}
+
+/* ============ 암호자산 편집 뷰 ============ */
+function viewCryptoEdit(){
+  const list = state.crypto;
+  const rows = list.map(item=>`
+    <div class="editrow" data-id="${item.id}" style="grid-template-columns:28px 1.1fr 1fr 1.3fr 44px;">
+      <input type="color" class="f-color" value="${item.color}">
+      <input type="text" class="f-name" value="${item.name}" placeholder="名称">
+      <input type="number" class="f-amount" value="${item.amount}" placeholder="金額">
+      <input type="text" class="f-note" value="${item.note}" placeholder="メモ（開始日など）">
+      <button class="btn danger f-del">削除</button>
+    </div>`).join("");
+  return `
+    <div class="pagehead">
+      <div><h2>暗号資産</h2><p>保有銘柄の評価額を更新できます。</p></div>
+      <button class="btn" id="addItem" data-key="crypto">＋ 銘柄を追加</button>
+    </div>
+    <div class="editlist" data-key="crypto">${rows}</div>
+  `;
+}
+
+/* ============ 부업・포인트 편집 뷰 ============ */
+function viewSidejobEdit(){
+  const sjRows = state.sidejobs.map(item=>`
+    <div class="editrow" data-id="${item.id}" data-key="sidejobs" style="grid-template-columns:1.4fr 1fr 44px;">
+      <input type="text" class="f-name" value="${item.name}" placeholder="項目名">
+      <input type="number" class="f-amount" value="${item.amount}" placeholder="金額">
+      <button class="btn danger f-del">削除</button>
+    </div>`).join("");
+  const ptRows = state.points.map(item=>`
+    <div class="editrow" data-id="${item.id}" data-key="points" style="grid-template-columns:1.4fr 1fr 44px;">
+      <input type="text" class="f-name" value="${item.name}" placeholder="項目名">
+      <input type="number" class="f-amount" value="${item.amount}" placeholder="金額">
+      <button class="btn danger f-del">削除</button>
+    </div>`).join("");
+  return `
+    <div class="pagehead"><div><h2>副業・収入</h2><p>今週の副業収入とポイント投資を編集します。</p></div></div>
+    <div class="settingsblock">
+      <h3>副業状況（今週）</h3>
+      <div class="editlist" data-key="sidejobs">${sjRows}</div>
+      <div class="addrow"><button class="btn secondary" id="addSidejob">＋ 項目を追加</button></div>
+    </div>
+    <div class="settingsblock">
+      <h3>ポイント投資</h3>
+      <div class="editlist" data-key="points">${ptRows}</div>
+      <div class="addrow"><button class="btn secondary" id="addPoint">＋ 項目を追加</button></div>
+    </div>
+  `;
+}
+
+/* ============ 설정 뷰 ============ */
+function viewSettings(){
+  const bankRows = state.banks.map(item=>`
+    <div class="editrow" data-id="${item.id}" data-key="banks" style="grid-template-columns:1.4fr 1fr 44px;">
+      <input type="text" class="f-name" value="${item.name}" placeholder="銀行名">
+      <input type="number" class="f-amount" value="${item.amount}" placeholder="残高（非公開表示可）">
+      <button class="btn danger f-del">削除</button>
+    </div>`).join("");
+  return `
+    <div class="pagehead"><div><h2>設定</h2><p>外部リンク・銀行預金・表示設定を管理します。</p></div></div>
+
+    <div class="settingsblock">
+      <h3>外部リンク</h3>
+      <div class="subgrid">
+        <div><span class="fieldlabel">Blog URL</span><input type="text" id="linkBlog" value="${state.links.blog}" style="width:100%;padding:9px 10px;border:1px solid var(--border);border-radius:7px;"></div>
+        <div><span class="fieldlabel">YouTube URL</span><input type="text" id="linkYoutube" value="${state.links.youtube}" style="width:100%;padding:9px 10px;border:1px solid var(--border);border-radius:7px;"></div>
+        <div><span class="fieldlabel">X / Threads URL</span><input type="text" id="linkX" value="${state.links.x}" style="width:100%;padding:9px 10px;border:1px solid var(--border);border-radius:7px;"></div>
+        <div><span class="fieldlabel">前週の総資産（前週比の計算に使用）</span><input type="number" id="prevTotal" value="${state.prevTotal}" style="width:100%;padding:9px 10px;border:1px solid var(--border);border-radius:7px;"></div>
+      </div>
+    </div>
+
+    <div class="settingsblock">
+      <h3>銀行預金 <label class="toggle" style="margin-left:12px;"><input type="checkbox" id="banksHidden" ${state.banksHidden?'checked':''}> 金額を非公開にする</label></h3>
+      <div class="editlist" data-key="banks">${bankRows}</div>
+      <div class="addrow"><button class="btn secondary" id="addBank">＋ 銀行を追加</button></div>
+    </div>
+
+    <div class="settingsblock">
+      <button class="btn secondary" id="resetData">初期データにリセット</button>
+      <span class="save-msg" id="saveMsg"></span>
+    </div>
+  `;
+}
+
+/* ============ 이벤트 바인딩 ============ */
+function attachHandlers(){
+  // 공통: 이름/금액/색상/비율/메모 입력 → 상태 갱신
+  document.querySelectorAll(".editrow").forEach(rowEl=>{
+    const listKey = rowEl.dataset.key || rowEl.closest(".editlist")?.dataset.key;
+    const id = Number(rowEl.dataset.id);
+    const item = state[listKey]?.find(x=>x.id===id);
+    if(!item) return;
+
+    const bind = (sel, field, isNum)=>{
+      const el = rowEl.querySelector(sel);
+      if(!el) return;
+      el.addEventListener("input", ()=>{
+        item[field] = isNum ? Number(el.value) : el.value;
+        saveState();
+      });
+    };
+    bind(".f-name","name",false);
+    bind(".f-amount","amount",true);
+    bind(".f-pct","pct",true);
+    bind(".f-color","color",false);
+    bind(".f-note","note",false);
+    bind(".f-startdate","startDate",false);
+    const startDateEl = rowEl.querySelector(".f-startdate");
+    if(startDateEl) startDateEl.addEventListener("change", ()=> render());
+
+    const delBtn = rowEl.querySelector(".f-del");
+    if(delBtn) delBtn.addEventListener("click", ()=>{
+      state[listKey] = state[listKey].filter(x=>x.id!==id);
+      saveState();
+      render();
+    });
+  });
+
+  // 항목 추가 버튼들
+  const addItemBtn = document.getElementById("addItem");
+  if(addItemBtn) addItemBtn.addEventListener("click", ()=>{
+    const key = addItemBtn.dataset.key;
+    const palette = ["#ef4444","#3b82f6","#f59e0b","#8b5cf6","#10b981","#ec4899","#06b6d4"];
+    const color = palette[state[key].length % palette.length];
+    if(key==="portfolio") state[key].push({id:uid(), name:"新規項目", pct:0, color});
+    else if(key==="crypto") state[key].push({id:uid(), name:"新規銘柄", amount:0, note:"", icon:"◆", color});
+    else if(key==="accounts") state[key].push({id:uid(), name:"新規項目", amount:0, color, startDate: todayStr()});
+    else state[key].push({id:uid(), name:"新規項目", amount:0, color});
+    saveState(); render();
+  });
+  const addSidejob = document.getElementById("addSidejob");
+  if(addSidejob) addSidejob.addEventListener("click", ()=>{
+    state.sidejobs.push({id:uid(), name:"新規項目", amount:0}); saveState(); render();
+  });
+  const addPoint = document.getElementById("addPoint");
+  if(addPoint) addPoint.addEventListener("click", ()=>{
+    state.points.push({id:uid(), name:"新規項目", amount:0}); saveState(); render();
+  });
+  const addBank = document.getElementById("addBank");
+  if(addBank) addBank.addEventListener("click", ()=>{
+    state.banks.push({id:uid(), name:"新規銀行", amount:0}); saveState(); render();
+  });
+
+  // 포트폴리오 評価額は口座別資産（楽天証券）と自動連動のため編集不可
+
+  // 설정: 링크 / 전주 총자산 / 은행 비공개 토글
+  const map = { linkBlog:["links","blog"], linkYoutube:["links","youtube"], linkX:["links","x"] };
+  Object.keys(map).forEach(id=>{
+    const el = document.getElementById(id);
+    if(!el) return;
+    el.addEventListener("input", ()=>{
+      state[map[id][0]][map[id][1]] = el.value; saveState(); flashSaved();
+    });
+  });
+  const prevTotalEl = document.getElementById("prevTotal");
+  if(prevTotalEl) prevTotalEl.addEventListener("input", ()=>{ state.prevTotal = Number(prevTotalEl.value); saveState(); flashSaved(); });
+
+  const banksHiddenEl = document.getElementById("banksHidden");
+  if(banksHiddenEl) banksHiddenEl.addEventListener("change", ()=>{ state.banksHidden = banksHiddenEl.checked; saveState(); flashSaved(); });
+
+  const resetBtn = document.getElementById("resetData");
+  if(resetBtn) resetBtn.addEventListener("click", ()=>{
+    if(confirm("すべてのデータを初期値に戻します。よろしいですか？")){
+      state = JSON.parse(JSON.stringify(DEFAULT_STATE));
+      saveState(); render();
+    }
+  });
+}
+function flashSaved(){
+  const el = document.getElementById("saveMsg");
+  if(!el) return;
+  el.textContent = "✓ 保存しました";
+  setTimeout(()=>{ if(el) el.textContent=""; }, 1500);
+}
+
+render();
 </script>
 </body>
 </html>
