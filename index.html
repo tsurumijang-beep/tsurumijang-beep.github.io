@@ -110,7 +110,6 @@
       .chart-container { height: 180px; }
     }
   </style>
-<base target="_blank">
 </head>
 <body>
   <nav class="navbar">
@@ -248,7 +247,7 @@ function setLang(lang) {
   localStorage.setItem('dash-lang', lang);
   applyLang();
   updateLangButtons();
-  renderAll(FALLBACK_DATA);
+  renderAll(lastLoadedData || FALLBACK_DATA);
 }
 
 function setView(view) {
@@ -285,7 +284,8 @@ function updateViewButtons() {
   document.getElementById('btn-view-mobile').classList.toggle('active', currentView === 'mobile');
 }
 
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyntgcG60RAoylSSifHYZzIu6GRlXKk55XkQrE2enAkx2s_I_VThKqJeLvfa277_2haHA/exec';
+const SHEET_ID = '1eJJPWd1SGvQzQN1PK2JcSoCiZMVdQnzyekwdxgou1_k';
+let lastLoadedData = null;
 function fmt(n){ return Number(n).toLocaleString(currentLang === 'en' ? 'en-US' : (currentLang === 'ko' ? 'ko-KR' : 'ja-JP')); }
 
 const FALLBACK_DATA = {
@@ -335,6 +335,7 @@ function formatDate(dateVal) {
 }
 
 function renderAll(data) {
+  lastLoadedData = data;
   renderSummary(data.summary);
   renderAccounts(data.accounts);
   renderPortfolio(data.portfolio);
@@ -449,17 +450,80 @@ function calcVisibleTotal(data) {
   document.getElementById('visible-total').textContent = t('visibleTotalPrefix') + '約' + (total/10000).toFixed(1) + unit + ' ' + t('visibleTotalSuffix');
 }
 
-function loadFromSheets() {
-  if (APPS_SCRIPT_URL.indexOf('YOUR_APPS_SCRIPT') !== -1) {
-    renderAll(FALLBACK_DATA);
-    return;
+const SHEET_TABS = ['summary', 'accounts', 'portfolio', 'crypto', 'sideIncome', 'points'];
+const NUMERIC_FIELDS = {
+  summary: ['total_asset', 'change'],
+  accounts: ['value', 'change', 'percent'],
+  portfolio: ['value', 'percent'],
+  crypto: ['value', 'daily_amount'],
+  sideIncome: ['value'],
+  points: ['value']
+};
+
+function sheetCsvUrl(tabName) {
+  return 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/gviz/tq?tqx=out:csv&sheet=' + encodeURIComponent(tabName);
+}
+
+// 간단한 CSV 파서 (따옴표로 감싼 값, 콤마, 줄바꿈 처리)
+function parseCSV(text) {
+  var rows = [];
+  var row = [];
+  var field = '';
+  var inQuotes = false;
+  for (var i = 0; i < text.length; i++) {
+    var c = text[i];
+    if (inQuotes) {
+      if (c === '"') {
+        if (text[i + 1] === '"') { field += '"'; i++; }
+        else inQuotes = false;
+      } else field += c;
+    } else {
+      if (c === '"') inQuotes = true;
+      else if (c === ',') { row.push(field); field = ''; }
+      else if (c === '\n' || c === '\r') {
+        if (c === '\r' && text[i + 1] === '\n') i++;
+        row.push(field); field = '';
+        if (!(row.length === 1 && row[0] === '')) rows.push(row);
+        row = [];
+      } else field += c;
+    }
   }
-  var script = document.createElement('script');
-  var cb = 'onDashData';
-  window[cb] = function(data) { renderAll(data); delete window[cb]; };
-  script.src = APPS_SCRIPT_URL + '?callback=' + cb;
-  script.onerror = function() { renderAll(FALLBACK_DATA); };
-  document.head.appendChild(script);
+  if (field !== '' || row.length) { row.push(field); rows.push(row); }
+  return rows;
+}
+
+function csvToObjects(text, numericFields) {
+  var rows = parseCSV(text).filter(function(r) { return r.length && r.some(function(v) { return v !== ''; }); });
+  if (!rows.length) return [];
+  var headers = rows[0].map(function(h) { return h.trim(); });
+  return rows.slice(1).map(function(r) {
+    var obj = {};
+    headers.forEach(function(h, idx) {
+      var val = r[idx] !== undefined ? r[idx].trim() : '';
+      obj[h] = (numericFields.indexOf(h) !== -1 && val !== '') ? Number(val) : val;
+    });
+    return obj;
+  });
+}
+
+function loadFromSheets() {
+  Promise.all(SHEET_TABS.map(function(tab) {
+    return fetch(sheetCsvUrl(tab))
+      .then(function(res) {
+        if (!res.ok) throw new Error('시트 로드 실패: ' + tab);
+        return res.text();
+      })
+      .then(function(text) { return csvToObjects(text, NUMERIC_FIELDS[tab] || []); });
+  }))
+  .then(function(results) {
+    var data = {};
+    SHEET_TABS.forEach(function(tab, idx) { data[tab] = results[idx]; });
+    renderAll(data);
+  })
+  .catch(function(err) {
+    console.error('Google Sheets CSV 로드 오류:', err);
+    renderAll(FALLBACK_DATA);
+  });
 }
 
 document.addEventListener('DOMContentLoaded', function() {
